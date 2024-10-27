@@ -13,8 +13,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add DbContext
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlite("Data Source=app.db"));
+
+// Add DbContext with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure CORS before other middleware
 builder.Services.AddCors(options =>
