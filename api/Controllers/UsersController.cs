@@ -26,7 +26,8 @@ public class UsersController : ControllerBase
             {
                 Id = u.Id,
                 Email = u.Email,
-                Name = u.Name
+                Name = u.Name,
+                CreatedDate = u.CreatedDate
             })
             .ToListAsync();
 

@@ -33,7 +33,8 @@ public class AuthService : IAuthService
         {
             Email = request.Email,
             Name = request.Name,
-            PasswordHash = HashPassword(request.Password)
+            PasswordHash = HashPassword(request.Password),
+            CreatedDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
         };
 
         _context.Users.Add(user);
