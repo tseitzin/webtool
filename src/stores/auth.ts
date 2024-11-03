@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data } = await api.post<AuthResponse>('/auth/login', {
         email,
         password,
+        name
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -54,11 +55,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(email: string, password: string) {
+  async function register(email: string, password: string, name: string) {
     try {
       const { data } = await api.post<AuthResponse>('/auth/register', {
         email,
         password,
+        name
       }, {
         headers: {
           'Content-Type': 'application/json',

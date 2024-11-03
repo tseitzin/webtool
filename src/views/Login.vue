@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const email = ref('')
 const password = ref('')
 const error = ref('')
+const successMessage = ref('')
+
+onMounted(() => {
+  if (route.query.reset === 'success') {
+    successMessage.value = 'Password has been reset successfully. Please login with your new password.'
+  }
+})
 
 const handleSubmit = async () => {
   try {
@@ -28,6 +36,7 @@ const handleSubmit = async () => {
           Sign in to your account
         </h2>
       </div>
+
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
@@ -54,6 +63,14 @@ const handleSubmit = async () => {
           </div>
         </div>
 
+        <div class="flex items-center justify-between">
+          <div class="text-sm">
+            <router-link to="/forgot-password" class="font-medium text-indigo-600 hover:text-indigo-500">
+              Forgot your password?
+            </router-link>
+          </div>
+        </div>
+
         <div>
           <button
             type="submit"
@@ -63,6 +80,7 @@ const handleSubmit = async () => {
           </button>
         </div>
       </form>
+
       <p v-if="error" class="mt-2 text-center text-sm text-red-600">
         {{ error }}
       </p>

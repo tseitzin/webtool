@@ -13,11 +13,13 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
-    public AuthService(AppDbContext context, IConfiguration configuration)
+    public AuthService(AppDbContext context, IConfiguration configuration, IEmailService emailService)
     {
         _context = context;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponse> RegisterAsync(AuthRequest request)
@@ -61,6 +63,50 @@ public class AuthService : IAuthService
             Email = user.Email,
             Name = user.Name
         };
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user == null) return; // Don't reveal if email exists
+
+        // Generate reset token
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        user.ResetToken = token;
+        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+
+        await _context.SaveChangesAsync();
+
+        var resetLink = $"{_configuration["ClientUrl"]}/reset-password?token={token}&email={user.Email}";
+        var emailBody = $@"
+            <h2>Reset Your Password</h2>
+            <p>Click the link below to reset your password:</p>
+            <a href='{resetLink}'>Reset Password</a>
+            <p>This link will expire in 1 hour.</p>";
+
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Password Reset Request",
+            emailBody);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => 
+            u.Email == request.Email && 
+            u.ResetToken == request.Token &&
+            u.ResetTokenExpiry > DateTime.UtcNow);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("Invalid or expired reset token");
+        }
+
+        user.PasswordHash = HashPassword(request.NewPassword);
+        user.ResetToken = null;
+        user.ResetTokenExpiry = null;
+
+        await _context.SaveChangesAsync();
     }
 
     private string HashPassword(string password)

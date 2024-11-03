@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 const auth = useAuthStore()
 const router = useRouter()
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -18,7 +19,7 @@ const handleSubmit = async () => {
   }
   
   try {
-    await auth.register(email.value, password.value)
+    await auth.register(email.value, password.value, name.value)
     router.push('/')
   } catch (e) {
     error.value = 'Registration failed'
@@ -45,6 +46,17 @@ const handleSubmit = async () => {
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Email address"
+            />
+          </div>
+          <div>
+            <label for="fName" class="sr-only">First Name</label>
+            <input
+              id="name"
+              v-model="name"
+              type="text"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="First Name"
             />
           </div>
           <div>
