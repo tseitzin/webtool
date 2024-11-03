@@ -32,7 +32,7 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email,
-            Name = request.Email.Split('@')[0],
+            Name = request.Name,
             PasswordHash = HashPassword(request.Password)
         };
 
