@@ -34,7 +34,8 @@ public class AuthService : IAuthService
             Email = request.Email,
             Name = request.Name,
             PasswordHash = HashPassword(request.Password),
-            CreatedDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
+            CreatedDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"),
+            LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
         };
 
         _context.Users.Add(user);
@@ -58,6 +59,9 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Invalid credentials");
         }
 
+        user.LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+        await _context.SaveChangesAsync();
+
         return new AuthResponse
         {
             Token = GenerateJwtToken(user),
@@ -74,7 +78,7 @@ public class AuthService : IAuthService
         // Generate reset token
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         user.ResetToken = token;
-        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(8);
 
         await _context.SaveChangesAsync();
 
@@ -83,7 +87,7 @@ public class AuthService : IAuthService
             <h2>Reset Your Password</h2>
             <p>Click the link below to reset your password:</p>
             <a href='{resetLink}'>Reset Password</a>
-            <p>This link will expire in 1 hour.</p>";
+            <p>This link will expire in 8 hours.</p>";
 
         await _emailService.SendEmailAsync(
             user.Email,
