@@ -34,6 +34,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             Name = request.Name,
             PasswordHash = HashPassword(request.Password),
+            IsAdmin = false,
             CreatedDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"),
             LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
         };
@@ -45,7 +46,8 @@ public class AuthService : IAuthService
         {
             Token = GenerateJwtToken(user),
             Email = user.Email,
-            Name = user.Name
+            Name = user.Name,
+            IsAdmin = user.IsAdmin
         };
     }
 
@@ -66,7 +68,8 @@ public class AuthService : IAuthService
         {
             Token = GenerateJwtToken(user),
             Email = user.Email,
-            Name = user.Name
+            Name = user.Name,
+            IsAdmin = user.IsAdmin
         };
     }
 
@@ -114,6 +117,21 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
     }
 
+    public async Task AdminResetPasswordAsync(int userId, string newPassword)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        user.PasswordHash = HashPassword(newPassword);
+        user.ResetToken = null;
+        user.ResetTokenExpiry = null;
+
+        await _context.SaveChangesAsync();
+    }
+
     private string HashPassword(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
@@ -133,7 +151,8 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.Name)
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim("IsAdmin", user.IsAdmin.ToString().ToLower())
         };
 
         var token = new JwtSecurityToken(

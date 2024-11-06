@@ -6,17 +6,32 @@ interface User {
   email: string;
   name: string;
   token: string;
+  isAdmin: boolean;
 }
 
 interface AuthResponse {
   token: string;
   email: string;
   name: string;
+  isAdmin: boolean;
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)
+
+  const parseJwt = (token: string) => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+      return JSON.parse(jsonPayload)
+    } catch (e) {
+      return null
+    }
+  }
 
   // Initialize state from localStorage
   const initializeAuth = () => {
@@ -40,10 +55,14 @@ export const useAuthStore = defineStore('auth', () => {
         }
       })
 
+      const decodedToken = parseJwt(data.token)
+      const isAdmin = decodedToken?.IsAdmin?.toLowerCase() === 'true'
+
       user.value = {
         email: data.email,
         name: data.name,
-        token: data.token
+        token: data.token,
+        isAdmin: data.isAdmin
       }
       isAuthenticated.value = true
 
@@ -68,10 +87,15 @@ export const useAuthStore = defineStore('auth', () => {
         }
       })
 
+      const token = data.token
+      const decodedToken = JSON.parse(atob(token.split('.')[1]))
+      const isAdmin = decodedToken.IsAdmin === 'True'
+
       user.value = {
         email: data.email,
         name: data.name,
-        token: data.token
+        token: data.token,
+        isAdmin: data.isAdmin
       }
       isAuthenticated.value = true
 

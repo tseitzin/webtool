@@ -4,6 +4,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import ForgotPassword from '../views/ForgotPassword.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import Users from '../views/Users.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -13,6 +14,12 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: Home,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: Users,
       meta: { requiresAuth: true }
     },
     {

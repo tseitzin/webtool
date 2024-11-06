@@ -21,6 +21,13 @@ const handleLogout = () => {
         >
           Home
         </router-link>
+        <router-link 
+          v-if="auth.isAuthenticated"
+          to="/users" 
+          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+        >
+          Users
+        </router-link>
         <template v-if="!auth.isAuthenticated">
           <router-link 
             to="/login" 
