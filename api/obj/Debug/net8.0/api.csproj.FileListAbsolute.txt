@@ -167,3 +167,5 @@
 /Users/tim/Projects/another/api/bin/Debug/net8.0/runtimes/win/lib/net6.0/System.Security.Cryptography.ProtectedData.dll
 /Users/tim/Projects/another/api/bin/Debug/net8.0/runtimes/win/lib/net6.0/System.Windows.Extensions.dll
 /Users/tim/Projects/another/api/obj/Debug/net8.0/api.sourcelink.json
+/Users/tim/Projects/another/api/bin/Debug/net8.0/dotnet-ef.dll
+/Users/tim/Projects/another/api/bin/Debug/net8.0/Newtonsoft.Json.dll

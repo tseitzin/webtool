@@ -21,6 +21,9 @@ const selectedUserId = ref<number | null>(null)
 const showResetModal = ref(false)
 
 onMounted(async () => {
+  if (!auth.user?.isAdmin) {
+    router.push('/login')
+  }
   try {
     const response = await api.get('/users')
     users.value = response.data
@@ -146,9 +149,9 @@ const resetPassword = async () => {
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700">New Password</label>
           <input
-            type="password"
+            type="text"
             v-model="newPassword"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            class="mt-1 block w-full rounded-md border-black border-2 shadow-sm focus:border-black focus:ring-indigo-500"
           />
         </div>
         <div class="flex justify-end space-x-2">
