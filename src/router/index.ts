@@ -6,6 +6,7 @@ import ForgotPassword from '../views/ForgotPassword.vue'
 import ResetPassword from '../views/ResetPassword.vue'
 import Users from '../views/Users.vue'
 import { useAuthStore } from '../stores/auth'
+import AccessDenied from '../views/AccessDenied.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,6 +32,11 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: Register
+    },
+    {
+      path: '/access-denied',
+      name: 'accessdenied',
+      component: AccessDenied
     },
     {
       path: '/forgot-password',

@@ -22,7 +22,7 @@ const showResetModal = ref(false)
 
 onMounted(async () => {
   if (!auth.user?.isAdmin) {
-    router.push('/login')
+    router.push('/access-denied')
   }
   try {
     const response = await api.get('/users')
