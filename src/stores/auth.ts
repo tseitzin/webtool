@@ -56,12 +56,12 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       const decodedToken = parseJwt(data.token)
-      const isAdmin = decodedToken?.IsAdmin?.toLowerCase() === 'true'
+      //const isAdmin = decodedToken?.IsAdmin?.toLowerCase() === 'true'
 
       user.value = {
         email: data.email,
         name: data.name,
-        token: data.token,
+        token: decodedToken,
         isAdmin: data.isAdmin
       }
       isAuthenticated.value = true
@@ -89,12 +89,12 @@ export const useAuthStore = defineStore('auth', () => {
 
       const token = data.token
       const decodedToken = JSON.parse(atob(token.split('.')[1]))
-      const isAdmin = decodedToken.IsAdmin === 'True'
+      //const isAdmin = decodedToken.IsAdmin === 'True'
 
       user.value = {
         email: data.email,
         name: data.name,
-        token: data.token,
+        token: decodedToken,
         isAdmin: data.isAdmin
       }
       isAuthenticated.value = true
