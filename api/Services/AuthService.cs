@@ -76,21 +76,29 @@ public class AuthService : IAuthService
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-        if (user == null) return; // Don't reveal if email exists
+        if (user == null) return;
 
-        // Generate reset token
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var tokenBytes = new byte[32];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(tokenBytes);
+        }
+        var token = Convert.ToBase64String(tokenBytes)
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .Replace("=", "");
+
         user.ResetToken = token;
-        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(8);
+        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
 
         await _context.SaveChangesAsync();
 
-        var resetLink = $"{_configuration["ClientUrl"]}/reset-password?token={token}&email={user.Email}";
+        var resetLink = $"{_configuration["ClientUrl"]}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
         var emailBody = $@"
             <h2>Reset Your Password</h2>
             <p>Click the link below to reset your password:</p>
             <a href='{resetLink}'>Reset Password</a>
-            <p>This link will expire in 8 hours.</p>";
+            <p>This link will expire in 1 hour.</p>";
 
         await _emailService.SendEmailAsync(
             user.Email,

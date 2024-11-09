@@ -30,13 +30,13 @@ const handleSubmit = async () => {
 
   try {
     await api.post('/auth/reset-password', {
-      token,
-      email,
+      token: decodeURIComponent(token),
+      email: decodeURIComponent(email),
       newPassword: newPassword.value
     })
     router.push('/login?reset=success')
   } catch (e: any) {
-    error.value = e.response?.data?.message || 'An error occurred'
+    error.value = e.response?.data?.message || 'Invalid or expired reset token'
   } finally {
     isSubmitting.value = false
   }
