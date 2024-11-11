@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,23 @@ public class AppDbContext : DbContext
 
             entity.Property(u => u.PasswordHash)
                   .IsRequired();
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.Property(a => a.Event)
+                  .HasMaxLength(50)
+                  .IsRequired();
+
+            entity.Property(a => a.Email)
+                  .HasMaxLength(256)
+                  .IsRequired();
+
+            entity.Property(a => a.IpAddress)
+                  .HasMaxLength(45);
+
+            entity.Property(a => a.FailureReason)
+                  .HasMaxLength(256);
         });
     }
 }

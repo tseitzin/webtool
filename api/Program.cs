@@ -12,6 +12,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 // Add DbContext
 // builder.Services.AddDbContext<AppDbContext>(options =>
 //     options.UseSqlite("Data Source=app.db"));

@@ -32,11 +32,57 @@ public class UsersController : ControllerBase
                 Email = u.Email,
                 Name = u.Name,
                 IsAdmin = u.IsAdmin,
-                CreatedDate = u.CreatedDate
+                CreatedDate = u.CreatedDate,
+                LastLoginDate = u.LastLoginDate,
+                NumberOfLogins = u.NumberOfLogins
             })
             .ToListAsync();
 
         return Ok(users);
+    }
+
+    [HttpPost("update-password")]
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            return BadRequest(new { message = "Current password is incorrect" });
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Password updated successfully" });
+    }
+
+    [HttpPost("update-email")]
+    public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmailRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        if (await _context.Users.AnyAsync(u => u.Email == request.NewEmail && u.Id != userId))
+        {
+            return BadRequest(new { message = "Email already in use" });
+        }
+
+        user.Email = request.NewEmail;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Email updated successfully" });
     }
 
     [HttpDelete("{id}")]

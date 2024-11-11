@@ -14,18 +14,23 @@ public class AuthService : IAuthService
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuthService(AppDbContext context, IConfiguration configuration, IEmailService emailService)
+
+    public AuthService(AppDbContext context, IConfiguration configuration, 
+        IEmailService emailService, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _configuration = configuration;
         _emailService = emailService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<AuthResponse> RegisterAsync(AuthRequest request)
     {
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
         {
+            await LogAuthEvent(request.Email, false, "Email already exists");
             throw new InvalidOperationException("User already exists");
         }
 
@@ -42,6 +47,8 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        await LogAuthEvent(request.Email, true, null);
+
         return new AuthResponse
         {
             Token = GenerateJwtToken(user),
@@ -56,13 +63,23 @@ public class AuthService : IAuthService
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
+        if (user == null)
         {
+            await LogAuthEvent(request.Email, false, "User not found");
+            throw new InvalidOperationException("Invalid credentials");
+        }
+
+        if (!VerifyPassword(request.Password, user.PasswordHash))
+        {
+            await LogAuthEvent(request.Email, false, "Invalid password");
             throw new InvalidOperationException("Invalid credentials");
         }
 
         user.LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+        user.NumberOfLogins++;
         await _context.SaveChangesAsync();
+
+        await LogAuthEvent(request.Email, true, null);
 
         return new AuthResponse
         {
@@ -172,5 +189,27 @@ public class AuthService : IAuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private async Task LogAuthEvent(string email, bool success, string? failureReason)
+    {
+        var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+        var timeUtc = DateTime.UtcNow;
+        TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+        DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+        
+        var log = new AuditLog
+        {
+            Event = success ? "Login Success" : "Login Failed",
+            Email = email,
+            Success = success,
+            FailureReason = failureReason,
+            IpAddress = ipAddress,
+            Timestamp = easternTime
+        };
+
+        _context.AuditLogs.Add(log);
+        await _context.SaveChangesAsync();
     }
 }

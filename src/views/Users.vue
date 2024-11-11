@@ -10,6 +10,8 @@ interface User {
   name: string;
   isAdmin: boolean;
   createdDate: string;
+  lastLoginDate: string;
+  numberOfLogins: number;
 }
 
 const users = ref<User[]>([])
@@ -74,6 +76,7 @@ const resetPassword = async () => {
     error.value = e.response?.data?.message || 'Failed to reset password'
   }
 }
+
 </script>
 
 <template>
@@ -87,39 +90,51 @@ const resetPassword = async () => {
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <tr class="text-center bg-blue-200 border text-black font-bold">
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
               Name
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
               Email
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
               Role
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
               Joined
             </th>
-            <th v-if="auth.user?.isAdmin" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
+              Last Login
+            </th>
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
+              Logins
+            </th>
+            <th v-if="auth.user?.isAdmin" class="px-6 py-3 text-xs uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="user in users" :key="user.id">
+          <tr class="text-center text-black" v-for="user in users" :key="user.id">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               {{ user.name }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
               {{ user.email }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
               {{ user.isAdmin ? 'Admin' : 'User' }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
               {{ formatDate(user.createdDate) }}
             </td>
-            <td v-if="auth.user?.isAdmin" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              {{ user.lastLoginDate }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              {{ user.numberOfLogins }}
+            </td>
+            <td v-if="auth.user?.isAdmin" class="px-6 py-4 whitespace-nowrap text-sm">
               <div class="flex space-x-2">
                 <button
                   v-if="!user.isAdmin"

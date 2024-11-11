@@ -8,4 +8,6 @@ public class UserDto
     public bool IsAdmin { get; set; }
     public string? CreatedDate { get; set; }
     public string? LastLoginDate { get; set; }
+    public int NumberOfLogins { get; set; }
+    public int FailedLogins { get; set; }
 }

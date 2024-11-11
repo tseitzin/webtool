@@ -4,7 +4,9 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import ForgotPassword from '../views/ForgotPassword.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import Account from '../views/Account.vue'
 import Users from '../views/Users.vue'
+import AuditLogs from '../views/AuditLogs.vue'
 import { useAuthStore } from '../stores/auth'
 import AccessDenied from '../views/AccessDenied.vue'
 
@@ -20,6 +22,18 @@ const router = createRouter({
       path: '/users',
       name: 'users',
       component: Users,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/audit-logs',
+      name: 'audit-logs',
+      component: AuditLogs,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: Account,
       meta: { requiresAuth: true }
     },
     {

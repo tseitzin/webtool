@@ -13,7 +13,7 @@ const handleLogout = () => {
 
 <template>
   <nav class="bg-gray-800 p-4">
-    <div class="container mx-auto flex items-center">
+    <div class="container mx-auto flex items-center justify-between">
       <div class="flex space-x-4">
         <router-link 
           to="/" 
@@ -22,12 +22,21 @@ const handleLogout = () => {
           Home
         </router-link>
         <router-link 
-          v-if="auth.user?.isAdmin"
+          v-if="auth.isAuthenticated && auth.user?.isAdmin"
           to="/users" 
           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
         >
           Users
         </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated && auth.user?.isAdmin"
+            to="/audit-logs" 
+            class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+          >
+            Audit Logs
+        </router-link>
+      </div>
+      <div class="flex space-x-4">
         <template v-if="!auth.isAuthenticated">
           <router-link 
             to="/login" 
@@ -42,13 +51,20 @@ const handleLogout = () => {
             Register
           </router-link>
         </template>
-        <button 
-          v-else
-          @click="handleLogout" 
-          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-        >
-          Logout
-        </button>
+        <template v-else>
+          <router-link 
+            to="/account" 
+            class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+          >
+            Account
+          </router-link>
+          <button 
+            @click="handleLogout" 
+            class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+          >
+            Logout
+          </button>
+        </template>
       </div>
     </div>
   </nav>
