@@ -12,6 +12,7 @@ interface User {
   createdDate: string;
   lastLoginDate: string;
   numberOfLogins: number;
+  failedLogins: number;
 }
 
 const users = ref<User[]>([])
@@ -109,6 +110,9 @@ const resetPassword = async () => {
             <th class="px-6 py-3 text-xs uppercase tracking-wider">
               Logins
             </th>
+            <th class="px-6 py-3 text-xs uppercase tracking-wider">
+              Failed
+            </th>
             <th v-if="auth.user?.isAdmin" class="px-6 py-3 text-xs uppercase tracking-wider">
               Actions
             </th>
@@ -133,6 +137,9 @@ const resetPassword = async () => {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">
               {{ user.numberOfLogins }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              {{ user.failedLogins }}
             </td>
             <td v-if="auth.user?.isAdmin" class="px-6 py-4 whitespace-nowrap text-sm">
               <div class="flex space-x-2">

@@ -30,7 +30,7 @@ public class AuthService : IAuthService
     {
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
         {
-            await LogAuthEvent(request.Email, false, "Email already exists");
+            await LogAuthEvent(request.Email, false, "Email already exists", "Registration Failed");
             throw new InvalidOperationException("User already exists");
         }
 
@@ -47,7 +47,7 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        await LogAuthEvent(request.Email, true, null);
+        await LogAuthEvent(request.Email, true, null, "Registration Success");
 
         return new AuthResponse
         {
@@ -65,13 +65,15 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            await LogAuthEvent(request.Email, false, "User not found");
+            await LogAuthEvent(request.Email, false, "User not found", "Login Failed");
             throw new InvalidOperationException("Invalid credentials");
         }
 
         if (!VerifyPassword(request.Password, user.PasswordHash))
         {
-            await LogAuthEvent(request.Email, false, "Invalid password");
+            await LogAuthEvent(request.Email, false, "Invalid password", "Login Failed");
+            user.FailedLogins++;
+            await _context.SaveChangesAsync();
             throw new InvalidOperationException("Invalid credentials");
         }
 
@@ -79,7 +81,7 @@ public class AuthService : IAuthService
         user.NumberOfLogins++;
         await _context.SaveChangesAsync();
 
-        await LogAuthEvent(request.Email, true, null);
+        await LogAuthEvent(request.Email, true, null, "Login Success");
 
         return new AuthResponse
         {
@@ -191,7 +193,8 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private async Task LogAuthEvent(string email, bool success, string? failureReason)
+    private async Task LogAuthEvent(string email, bool success, 
+                                    string? failureReason, string curEvent)
     {
         var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
@@ -201,7 +204,7 @@ public class AuthService : IAuthService
         
         var log = new AuditLog
         {
-            Event = success ? "Login Success" : "Login Failed",
+            Event = curEvent,
             Email = email,
             Success = success,
             FailureReason = failureReason,

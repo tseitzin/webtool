@@ -34,7 +34,8 @@ public class UsersController : ControllerBase
                 IsAdmin = u.IsAdmin,
                 CreatedDate = u.CreatedDate,
                 LastLoginDate = u.LastLoginDate,
-                NumberOfLogins = u.NumberOfLogins
+                NumberOfLogins = u.NumberOfLogins,
+                FailedLogins = u.FailedLogins
             })
             .ToListAsync();
 

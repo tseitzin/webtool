@@ -13,6 +13,7 @@ namespace api.Controllers;
 public class AuditController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private const int DefaultPageSize = 10;
 
     public AuditController(AppDbContext context)
     {
@@ -24,7 +25,11 @@ public class AuditController : ControllerBase
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate,
         [FromQuery] string? email,
-        [FromQuery] bool? success)
+        [FromQuery] bool? success,
+        [FromQuery] string? sortBy = "timestamp",
+        [FromQuery] string? sortOrder = "desc",
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = DefaultPageSize)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var user = await _context.Users.FindAsync(userId);
@@ -36,6 +41,7 @@ public class AuditController : ControllerBase
 
         var query = _context.AuditLogs.AsQueryable();
 
+        // Apply filters
         if (startDate.HasValue)
             query = query.Where(l => l.Timestamp >= startDate.Value);
 
@@ -48,11 +54,41 @@ public class AuditController : ControllerBase
         if (success.HasValue)
             query = query.Where(l => l.Success == success.Value);
 
+        // Apply sorting
+        query = sortBy?.ToLower() switch
+        {
+            "email" => sortOrder == "desc" ? query.OrderByDescending(l => l.Email) : query.OrderBy(l => l.Email),
+            "event" => sortOrder == "desc" ? query.OrderByDescending(l => l.Event) : query.OrderBy(l => l.Event),
+            "success" => sortOrder == "desc" ? query.OrderByDescending(l => l.Success) : query.OrderBy(l => l.Success),
+            "ipaddress" => sortOrder == "desc" ? query.OrderByDescending(l => l.IpAddress) : query.OrderBy(l => l.IpAddress),
+            _ => sortOrder == "desc" ? query.OrderByDescending(l => l.Timestamp) : query.OrderBy(l => l.Timestamp)
+        };
+
+        // Get total count for pagination
+        var totalCount = await query.CountAsync();
+
+        // Apply pagination
+        var validPageSize = Math.Min(Math.Max(1, pageSize), 100); // Ensure pageSize is between 1 and 100
+        var validPage = Math.Max(1, page);
+        var skip = (validPage - 1) * validPageSize;
+
         var logs = await query
-            .OrderByDescending(l => l.Timestamp)
-            .Take(1000)
+            .Skip(skip)
+            .Take(validPageSize)
             .ToListAsync();
 
-        return Ok(logs);
+        var response = new
+        {
+            logs,
+            pagination = new
+            {
+                currentPage = validPage,
+                pageSize = validPageSize,
+                totalCount,
+                totalPages = (int)Math.Ceiling(totalCount / (double)validPageSize)
+            }
+        };
+
+        return Ok(response);
     }
 }
