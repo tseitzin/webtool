@@ -119,6 +119,8 @@ public class AuthService : IAuthService
             <a href='{resetLink}'>Reset Password</a>
             <p>This link will expire in 1 hour.</p>";
 
+        await LogAuthEvent(request.Email, true, "N/A", "Password reset sent");
+
         await _emailService.SendEmailAsync(
             user.Email,
             "Password Reset Request",
@@ -134,12 +136,15 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
+            await LogAuthEvent("null", false, "Password reset token failure", "Password reset by User");
             throw new InvalidOperationException("Invalid or expired reset token");
         }
 
         user.PasswordHash = HashPassword(request.NewPassword);
         user.ResetToken = null;
         user.ResetTokenExpiry = null;
+
+        await LogAuthEvent(user.Email, true, "N/A", "Password reset by User");
 
         await _context.SaveChangesAsync();
     }
@@ -155,6 +160,8 @@ public class AuthService : IAuthService
         user.PasswordHash = HashPassword(newPassword);
         user.ResetToken = null;
         user.ResetTokenExpiry = null;
+
+        await LogAuthEvent(user.Email, true, "N/A", "Password reset by Admin");
 
         await _context.SaveChangesAsync();
     }
