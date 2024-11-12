@@ -46,10 +46,15 @@ const featuredVerses = [
     <div class="container mx-auto px-4 py-12">
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Welcome to the Bible Reading App
+          Welcome to the Bible Navigator
         </h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
           Explore the wisdom of Scripture through reading and searching the Bible.
+        </p>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          We hope that this helps you grow closer to the Word of God.
+        </p>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
           Start your spiritual journey today.
         </p>
       </div>
@@ -75,7 +80,7 @@ const featuredVerses = [
 
       <!-- Quick Links -->
       <div class="max-w-4xl mx-auto mt-12 text-center">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Quick Access</h2>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Featured Books</h2>
         <div class="flex flex-wrap justify-center gap-4">
           <button
             v-for="book in ['Luke', 'Matthew', 'John', 'Mark']"

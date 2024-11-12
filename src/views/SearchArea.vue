@@ -56,6 +56,8 @@
   .home {
     padding: 2rem;
     text-align: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #ebf8ff, #ffffff);
   }
   
   .subtitle {
