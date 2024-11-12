@@ -7,6 +7,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import Account from '../views/Account.vue'
 import Users from '../views/Users.vue'
 import AuditLogs from '../views/AuditLogs.vue'
+import SearchArea from '../views/SearchArea.vue'
 import { useAuthStore } from '../stores/auth'
 import AccessDenied from '../views/AccessDenied.vue'
 
@@ -17,6 +18,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: Home,
+    },
+    {
+      path: '/search-area',
+      name: 'search-area',
+      component: SearchArea,
     },
     {
       path: '/users',

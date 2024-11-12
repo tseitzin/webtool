@@ -67,7 +67,8 @@ const updateEmail = async () => {
 
 <template>
   <div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-    <h1>Welcome {{ auth.user?.name }}</h1>
+    <p class="text-2xl font-bold text-center">Welcome {{ auth.user?.name }}</p>
+    <p class="text-2xl font-bold text-center">This is the Account Area</p>
     <div class="max-w-3xl mx-auto">
       <div class="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 class="text-2xl font-bold mb-6">Account Settings</h2>
@@ -93,7 +94,7 @@ const updateEmail = async () => {
                   :type="showCurrentPassword ? 'text' : 'password'"
                   v-model="currentPassword"
                   required
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
+                  class="block w-full rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
                 />
                 <button
                   type="button"
@@ -120,7 +121,7 @@ const updateEmail = async () => {
                   v-model="newPassword"
                   required
                   minlength="6"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
+                  class="block w-full rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
                 />
                 <button
                   type="button"
@@ -147,7 +148,7 @@ const updateEmail = async () => {
                   v-model="confirmPassword"
                   required
                   minlength="6"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
+                  class="block w-full rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pr-10"
                 />
                 <button
                   type="button"
