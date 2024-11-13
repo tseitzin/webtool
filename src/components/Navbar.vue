@@ -108,7 +108,7 @@ const handleLogout = () => {
   padding-top: 0.5rem; /* py-2 */
   padding-bottom: 0.5rem; /* py-2 */
   border-radius: 0.375rem; /* rounded-md */
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1rem; /* text-xl */
   font-weight: 500; /* font-medium */
   transition: color 0.2s;
 }
