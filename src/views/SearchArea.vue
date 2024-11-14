@@ -1,51 +1,26 @@
 <template>
     <div class="home">
-      <p class="title">Welcome to the Bible search area</p>
-      <p><strong>Select a tile to start searching</strong></p>
+      <p class="title">Welcome to the Stock search area</p>
       
-      <div class="tiles-grid">
-        <router-link 
-          v-for="tile in navigationTiles" 
-          :key="tile.route"
-          :to="tile.route"
-          class="tile"
-        >
-          <div class="tile-icon">{{ tile.icon }}</div>
-          <h2 class="tile-title">{{ tile.title }}</h2>
-          <p class="tile-description">{{ tile.description }}</p>
-        </router-link>
-      </div>
+      
     </div>
   </template>
   
   <script setup lang="ts">
-  interface NavTile {
-    title: string
-    description: string
-    route: string
-    icon: string
-  }
-  
-  const navigationTiles: NavTile[] = [
-    {
-      title: 'Search for a Verse',
-      description: 'Find a specific verse in the Bible',
-      route: '/verse',
-      icon: '📜'
-    },
-    {
-      title: 'Search for a Chapter',
-      description: 'Find an entire chapter in the Bible',
-      route: '/about',
-      icon: '📝'
-    },
-    {
-      title: 'Search for a Book',
-      description: 'Find an entire book in the Bible',
-      route: '/about',
-      icon: '📖'
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import { onMounted } from 'vue';
+
+  const router = useRouter()
+  const auth = useAuthStore()
+
+  onMounted(async () => {
+    if (!auth.user) {
+      router.push('/access-denied')
     }
-  ]
+  })
+  
+  
   </script>
   
   <style scoped>

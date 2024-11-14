@@ -7,7 +7,7 @@ const router = useRouter()
 
 const handleLogout = () => {
   auth.logout()
-  router.push('/')
+  router.push('/login')
 }
 </script>
 
@@ -23,11 +23,20 @@ const handleLogout = () => {
           Home
         </router-link>
         <router-link 
+          v-if="auth.isAuthenticated"
+          to="/dashboard" 
+          class="navbar_link"
+          active-class="active"
+        >
+          Dashboard
+        </router-link>
+        <router-link 
+          v-if="auth.isAuthenticated"
           to="/search-area" 
           class="navbar_link"
           active-class="active"
         >
-          Bible Search
+          Stock Search
         </router-link>
         <router-link 
           v-if="auth.isAuthenticated && auth.user?.isAdmin"

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/tim/Projects/another/api/api.csproj": {}
+    "/Users/tim/Projects/webtool/api/api.csproj": {}
   },
   "projects": {
-    "/Users/tim/Projects/another/api/api.csproj": {
+    "/Users/tim/Projects/webtool/api/api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/tim/Projects/another/api/api.csproj",
+        "projectUniqueName": "/Users/tim/Projects/webtool/api/api.csproj",
         "projectName": "api",
-        "projectPath": "/Users/tim/Projects/another/api/api.csproj",
+        "projectPath": "/Users/tim/Projects/webtool/api/api.csproj",
         "packagesPath": "/Users/tim/.nuget/packages/",
-        "outputPath": "/Users/tim/Projects/another/api/obj/",
+        "outputPath": "/Users/tim/Projects/webtool/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/tim/.nuget/NuGet/NuGet.Config"

@@ -10,6 +10,7 @@ import AuditLogs from '../views/AuditLogs.vue'
 import SearchArea from '../views/SearchArea.vue'
 import { useAuthStore } from '../stores/auth'
 import AccessDenied from '../views/AccessDenied.vue'
+import Dashboard from '../views/Dashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -40,6 +41,12 @@ const router = createRouter({
       path: '/account',
       name: 'account',
       component: Account,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: Dashboard,
       meta: { requiresAuth: true }
     },
     {

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "eLlEotc3tAk=",
+  "dgSpecHash": "6TmqiZjNboQ=",
   "success": true,
-  "projectFilePath": "/Users/tim/Projects/another/api/api.csproj",
+  "projectFilePath": "/Users/tim/Projects/webtool/api/api.csproj",
   "expectedPackageFiles": [
     "/Users/tim/.nuget/packages/azure.core/1.35.0/azure.core.1.35.0.nupkg.sha512",
     "/Users/tim/.nuget/packages/azure.identity/1.10.3/azure.identity.1.10.3.nupkg.sha512",
