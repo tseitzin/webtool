@@ -67,8 +67,8 @@ const updateEmail = async () => {
 
 <template>
   <div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-    <p class="text-2xl font-bold text-center">Welcome {{ auth.user?.name }}</p>
-    <p class="text-2xl font-bold text-center">This is the Account Area</p>
+    <p class="text-2xl font-bold text-center mb-4">Welcome {{ auth.user?.name }}</p>
+    <p class="text-lg mb-4 text-center">This is the Account Area. Here you can change your password or your email.</p>
     <div class="max-w-3xl mx-auto">
       <div class="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 class="text-2xl font-bold mb-6">Account Settings</h2>
@@ -103,7 +103,7 @@ const updateEmail = async () => {
                   @mouseleave="showCurrentPassword = false"
                   class="absolute inset-y-0 right-0 px-3 flex items-center group"
                 >
-                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-10 whitespace-nowrap">
+                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-7 whitespace-nowrap">
                     Hold to show password
                   </span>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
@@ -130,7 +130,7 @@ const updateEmail = async () => {
                   @mouseleave="showNewPassword = false"
                   class="absolute inset-y-0 right-0 px-3 flex items-center group"
                 >
-                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-10 whitespace-nowrap">
+                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-7 whitespace-nowrap">
                     Hold to show password
                   </span>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
@@ -157,7 +157,7 @@ const updateEmail = async () => {
                   @mouseleave="showConfirmPassword = false"
                   class="absolute inset-y-0 right-0 px-3 flex items-center group"
                 >
-                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-10 whitespace-nowrap">
+                  <span class="absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 right-0 top-7 whitespace-nowrap">
                     Hold to show password
                   </span>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">

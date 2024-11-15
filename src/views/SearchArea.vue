@@ -32,7 +32,7 @@ import { onMounted } from 'vue';
     padding: 2rem;
     text-align: center;
     min-height: 100vh;
-    background: linear-gradient(to bottom, #ebf8ff, #ffffff);
+    background-color: rgb(248 250 252);
   }
   
   .subtitle {

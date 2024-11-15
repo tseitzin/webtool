@@ -16,6 +16,7 @@ const handleLogout = () => {
     <div class="container">
       <div class="navbar_div">
         <router-link 
+          v-if="!auth.isAuthenticated"
           to="/" 
           class="navbar_link"
           active-class="active"

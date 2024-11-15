@@ -21,7 +21,7 @@ onMounted(() => {
 const handleSubmit = async () => {
   try {
     await auth.login(email.value, password.value)
-    router.push('/')
+    router.push('/dashboard')
   } catch (e) {
     error.value = 'Invalid credentials'
   }
@@ -29,14 +29,20 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
+  <div class="min-h-screen flex justify-center items-start bg-gradient-to-br from-gray-100 to-gray-300 py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Enhanced login box with branding, informative text, and sleek styling -->
+    <div class="max-w-xl w-full space-y-9 bg-white p-12 rounded-lg shadow-2xl">
+      
+      <!-- Logo and Welcome Message -->
+      <div class="text-center">
+        <!-- <img src="/logo.png" alt="Stock Navigator Logo" class="mx-auto h-12 w-12" /> -->
+        <h2 class="text-3xl font-extrabold text-gray-900 mt-4">Login to Stock Navigator</h2>
+        <p class="text-sm text-gray-600 mt-2">
+          Discover insights, stay informed, and make smarter investment decisions.
+        </p>
       </div>
 
+      <!-- Login Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
@@ -63,7 +69,12 @@ const handleSubmit = async () => {
           </div>
         </div>
 
+        <!-- Remember Me and Forgot Password Links -->
         <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="remember_me" name="remember_me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+            <label for="remember_me" class="ml-2 block text-sm text-gray-900">Remember me</label>
+          </div>
           <div class="text-sm">
             <router-link to="/forgot-password" class="font-medium text-indigo-600 hover:text-indigo-500">
               Forgot your password?
@@ -71,6 +82,7 @@ const handleSubmit = async () => {
           </div>
         </div>
 
+        <!-- Sign-In Button -->
         <div>
           <button
             type="submit"
@@ -81,9 +93,19 @@ const handleSubmit = async () => {
         </div>
       </form>
 
+      <!-- Display Error Message if Login Fails -->
       <p v-if="error" class="mt-2 text-center text-sm text-red-600">
         {{ error }}
+      </p>
+
+      <!-- Sign-Up Prompt for New Users -->
+      <p class="text-center text-sm text-gray-600">
+        New to Stock Navigator?
+        <router-link to="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
+          Create an account
+        </router-link>
       </p>
     </div>
   </div>
 </template>
+
