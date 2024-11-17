@@ -20,7 +20,7 @@ const handleSubmit = async () => {
   
   try {
     await auth.register(email.value, password.value, name.value)
-    router.push('/')
+    router.push('/dashboard')
   } catch (e) {
     error.value = 'Registration failed'
   }
