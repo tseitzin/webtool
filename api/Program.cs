@@ -20,8 +20,12 @@ builder.Services.AddHttpContextAccessor();
 //     options.UseSqlite("Data Source=app.db"));
 
 // Add DbContext with SQL Server
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    // Add DbContext with PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure CORS before other middleware
 builder.Services.AddCors(options =>

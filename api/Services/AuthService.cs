@@ -40,8 +40,8 @@ public class AuthService : IAuthService
             Name = request.Name,
             PasswordHash = HashPassword(request.Password),
             IsAdmin = false,
-            CreatedDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"),
-            LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss")
+            CreatedDate = DateTime.UtcNow,
+            LastLoginDate = DateTime.UtcNow
         };
 
         _context.Users.Add(user);
@@ -77,7 +77,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Invalid credentials");
         }
 
-        user.LastLoginDate = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+        user.LastLoginDate = DateTime.UtcNow;
         user.NumberOfLogins++;
         await _context.SaveChangesAsync();
 
@@ -204,10 +204,6 @@ public class AuthService : IAuthService
                                     string? failureReason, string curEvent)
     {
         var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
-
-        var timeUtc = DateTime.UtcNow;
-        TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-        DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
         
         var log = new AuditLog
         {
@@ -216,7 +212,7 @@ public class AuthService : IAuthService
             Success = success,
             FailureReason = failureReason,
             IpAddress = ipAddress,
-            Timestamp = easternTime
+            Timestamp = DateTime.UtcNow
         };
 
         _context.AuditLogs.Add(log);

@@ -9,8 +9,8 @@ public class User
     public bool IsAdmin { get; set; }
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }
-    public string? CreatedDate { get; set; }
-    public string? LastLoginDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
+    public DateTime? LastLoginDate { get; set; }
     public int NumberOfLogins { get; set; }
     public int FailedLogins { get; set; }
 

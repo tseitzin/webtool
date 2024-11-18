@@ -15,8 +15,11 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Configure User entity
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("users"); // PostgreSQL convention: lowercase table names
+            
             entity.HasIndex(u => u.Email)
                   .IsUnique();
 
@@ -30,10 +33,25 @@ public class AppDbContext : DbContext
 
             entity.Property(u => u.PasswordHash)
                   .IsRequired();
+
+            // Configure column names to follow PostgreSQL conventions
+            entity.Property(u => u.Id).HasColumnName("id");
+            entity.Property(u => u.Email).HasColumnName("email");
+            entity.Property(u => u.Name).HasColumnName("name");
+            entity.Property(u => u.PasswordHash).HasColumnName("password_hash");
+            entity.Property(u => u.IsAdmin).HasColumnName("is_admin");
+            entity.Property(u => u.ResetToken).HasColumnName("reset_token");
+            entity.Property(u => u.ResetTokenExpiry).HasColumnName("reset_token_expiry");
+            entity.Property(u => u.CreatedDate).HasColumnName("created_date");
+            entity.Property(u => u.LastLoginDate).HasColumnName("last_login_date");
+            entity.Property(u => u.FailedLogins).HasColumnName("failed_logins");
         });
 
+        // Configure AuditLog entity
         modelBuilder.Entity<AuditLog>(entity =>
         {
+            entity.ToTable("audit_logs"); // PostgreSQL convention: lowercase table names
+            
             entity.Property(a => a.Event)
                   .HasMaxLength(50)
                   .IsRequired();
@@ -47,6 +65,15 @@ public class AppDbContext : DbContext
 
             entity.Property(a => a.FailureReason)
                   .HasMaxLength(256);
+
+            // Configure column names to follow PostgreSQL conventions
+            entity.Property(a => a.Id).HasColumnName("id");
+            entity.Property(a => a.Event).HasColumnName("event");
+            entity.Property(a => a.Email).HasColumnName("email");
+            entity.Property(a => a.Success).HasColumnName("success");
+            entity.Property(a => a.FailureReason).HasColumnName("failure_reason");
+            entity.Property(a => a.IpAddress).HasColumnName("ip_address");
+            entity.Property(a => a.Timestamp).HasColumnName("timestamp");
         });
     }
 }
