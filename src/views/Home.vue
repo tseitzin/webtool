@@ -30,11 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const auth = useAuthStore()
 
 interface NavTile {
     title: string
@@ -52,7 +47,7 @@ interface NavTile {
     },
     {
       title: 'Register as new user',
-      description: 'Find an entire chapter in the Bible',
+      description: 'Sign-up and start your financial journey',
       route: '/register',
       icon: '../assets/register.svg'
     }
