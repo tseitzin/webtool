@@ -1,0 +1,15 @@
+{
+    "dependencies": {
+      "postgresql": {
+        "type": "postgresql",
+        "connectionId": "ConnectionStrings:DefaultConnection"
+      },
+      "secrets": {
+        "type": "secrets"
+      },
+      "appInsights": {
+        "type": "appInsights",
+        "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      }
+    }
+  }

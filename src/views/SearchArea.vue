@@ -1,6 +1,7 @@
 <template>
     <div class="home">
       <p class="title">Welcome to the Stock search area</p>
+      <p class="title">This is under construction, check back soon!</p>
       
       
     </div>

@@ -1,0 +1,22 @@
+{
+    "dependencies": {
+      "postgresql": {
+        "secretStore": "AzureKeyVault",
+        "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.DBforPostgreSQL/flexibleServers/[parameters('serverName')]",
+        "type": "postgresql.azure",
+        "connectionId": "ConnectionStrings:DefaultConnection"
+      },
+      "secrets": {
+        "secretStore": null,
+        "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.KeyVault/vaults/[parameters('keyVaultName')]",
+        "type": "secrets.keyVault",
+        "connectionId": "VaultUri"
+      },
+      "appInsights": {
+        "secretStore": "AzureKeyVault",
+        "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/[parameters('appInsightsName')]",
+        "type": "appInsights.azure",
+        "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      }
+    }
+  }

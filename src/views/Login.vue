@@ -36,7 +36,7 @@ const handleSubmit = async () => {
       <!-- Logo and Welcome Message -->
       <div class="text-center">
         <!-- <img src="/logo.png" alt="Stock Navigator Logo" class="mx-auto h-12 w-12" /> -->
-        <h2 class="text-3xl font-extrabold text-gray-900 mt-4">Login to Stock Navigator</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mt-4">Login to Stock Navigator</h2>
         <p class="text-sm text-gray-600 mt-2">
           Discover insights, stay informed, and make smarter investment decisions.
         </p>

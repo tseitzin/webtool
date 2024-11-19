@@ -1,15 +1,15 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.PROD 
+  ? 'https://api.yourdomain.com/api'
+  : 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Access-Control-Allow-Origin': 'http://localhost:5173',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization, X-Request-With'
+    'Accept': 'application/json'
   }
 });
 
@@ -20,11 +20,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Ensure headers are included in preflight requests
-    config.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173';
-    config.headers['Access-Control-Allow-Credentials'] = 'true';
-    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-    config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Request-With';
     return config;
   },
   (error) => {
