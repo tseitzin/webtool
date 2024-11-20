@@ -69,7 +69,7 @@ builder.Services.AddCors(options =>
             }
             else
             {
-                policy.WithOrigins(builder.Configuration["ClientUrl"]!)
+                policy.WithOrigins(builder.Configuration["tbd"]!)
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();

@@ -10,8 +10,8 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<AuditLog> AuditLogs { get; set; }
+    public required DbSet<User> Users { get; set; }
+    public required DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
