@@ -7,10 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+*.zip
+publish/
+obj/
 node_modules
 api/obj/Debug/
 api/bin/
-dist
 dist-ssr
 *.local
 
