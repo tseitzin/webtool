@@ -4,12 +4,20 @@ const baseURL = import.meta.env.PROD
   ? 'https://stock-navigator-backend-api.azurewebsites.net/api'
   : 'http://localhost:5000/api';
 
+const clientURL = import.meta.env.PROD
+  ? 'https://gray-desert-0e726ef0f.5.azurestaticapps.net'
+  : 'http://localhost:5173'
+
 const api = axios.create({
   baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': clientURL,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization, X-Request-With'
   }
 });
 
@@ -20,6 +28,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Ensure headers are included in preflight requests
+    config.headers['Access-Control-Allow-Origin'] = clientURL;
+    config.headers['Access-Control-Allow-Credentials'] = 'true';
+    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+    config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Request-With';
     return config;
   },
   (error) => {
