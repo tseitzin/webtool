@@ -9,11 +9,11 @@ using Azure.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Azure Key Vault if in production
-if (builder.Environment.IsProduction())
-{
-    var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
-    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
-}
+// if (builder.Environment.IsProduction())
+// {
+//     var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
+//     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+// }
 
 // Add Application Insights
 // Add Application Insights only in production
@@ -69,7 +69,7 @@ builder.Services.AddCors(options =>
             }
             else
             {
-                policy.WithOrigins(builder.Configuration["tbd"]!)
+                policy.WithOrigins("https://gray-desert-0e726ef0f.5.azurestaticapps.net")
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
