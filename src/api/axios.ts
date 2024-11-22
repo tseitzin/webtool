@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 const baseURL = import.meta.env.PROD 
-  ? 'https://stock-navigator-backend-api.azurewebsites.net/api'
+  ? 'https://stock-navigator.azurewebsites.net/api'
   : 'http://localhost:5000/api';
 
 const clientURL = import.meta.env.PROD
-  ? 'https://gray-desert-0e726ef0f.5.azurestaticapps.net'
+  ? 'https://stock-navigator.azurewebsites.net'
   : 'http://localhost:5173'
 
 const api = axios.create({

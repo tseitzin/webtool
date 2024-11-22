@@ -43,13 +43,13 @@ interface NavTile {
       title: 'Login to your account',
       description: 'Login and start trading!',
       route: '/login',
-      icon: '../assets/market.svg'
+      icon: '/market.svg'
     },
     {
       title: 'Register as new user',
       description: 'Sign-up and start your financial journey',
       route: '/register',
-      icon: '../assets/register.svg'
+      icon: '/register.svg'
     }
   ]
 

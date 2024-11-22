@@ -5,6 +5,7 @@ using System.Text;
 using api.Data;
 using api.Services;
 using Azure.Identity;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,41 @@ if (builder.Environment.IsProduction())
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "Stock Navigator API", 
+        Version = "v1",
+        Description = "API for Stock Navigator application"
+    });
+
+    // Configure JWT authentication for Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
@@ -69,7 +104,7 @@ builder.Services.AddCors(options =>
             }
             else
             {
-                policy.WithOrigins("https://gray-desert-0e726ef0f.5.azurestaticapps.net")
+                policy.WithOrigins("https://stock-navigator.azurewebsites.net")
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -108,12 +143,15 @@ if (builder.Environment.IsProduction())
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Stock Navigator API v1");
+    c.RoutePrefix = "swagger"; // Change from empty string to "swagger"
+});
+
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
@@ -126,8 +164,15 @@ else
 
 // Use CORS before authentication and authorization
 app.UseCors("DefaultPolicy");
+
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Serve static files and enable default files
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // Add health check endpoint in production
 if (app.Environment.IsProduction())

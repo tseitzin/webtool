@@ -9,6 +9,7 @@ lerna-debug.log*
 
 *.zip
 publish/
+wwwroot/
 obj/
 node_modules
 api/obj/Debug/
