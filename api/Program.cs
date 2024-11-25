@@ -6,14 +6,41 @@ using api.Data;
 using api.Services;
 using Azure.Identity;
 using Microsoft.OpenApi.Models;
+using Azure.Security.KeyVault.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// // Configure Azure Key Vault if in production
+// if (builder.Environment.IsProduction())
+// {
+//     try
+//     {
+//         var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("JWT_KEY")!);
+//         builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+//     }
+//     catch (Exception ex)
+//     {
+//         // Log the error but don't throw - this allows the application to start
+//         // even if Key Vault is not yet configured
+//         Console.WriteLine($"Warning: Could not configure Azure Key Vault: {ex.Message}");
+//     }
+// }
 
 // Configure Azure Key Vault if in production
 // if (builder.Environment.IsProduction())
 // {
 //     var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
 //     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+
+//     // const string secretName = "Jwt--Key";
+//     var keyVaultName = "stock-navigator-vault";
+//     var kvUri = $"https://{keyVaultName}.vault.azure.net";
+
+//     var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
+
+//     Console.WriteLine($"Retrieving your secret from {keyVaultName}.");
+//     // var secret = await client.GetSecretAsync(secretName);
+//     // Console.WriteLine($"Your secret is '{secret.Value.Value}'.");
 // }
 
 // Add Application Insights
@@ -112,6 +139,7 @@ builder.Services.AddCors(options =>
         });
 });
 
+
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -181,6 +209,7 @@ if (app.Environment.IsProduction())
 }
 
 app.MapControllers();
+app.MapFallbackToController("Index", "Fallback");
 
 // Create database and apply migrations
 using (var scope = app.Services.CreateScope())
