@@ -19,7 +19,7 @@ public class SecretsController : ControllerBase
     [HttpGet("test")]
     public async Task<IActionResult> GetTestSecret()
     {
-        var secret = await _keyVaultService.GetSecretAsync("Email-Key");
+        var secret = await _keyVaultService.GetSecretAsync("SmtpFromEmail");
         
         if (secret == null)
         {
