@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
 
     public required DbSet<User> Users { get; set; }
     public required DbSet<AuditLog> AuditLogs { get; set; }
+    public required DbSet<StockData> StockData { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +75,35 @@ public class AppDbContext : DbContext
             entity.Property(a => a.FailureReason).HasColumnName("failure_reason");
             entity.Property(a => a.IpAddress).HasColumnName("ip_address");
             entity.Property(a => a.Timestamp).HasColumnName("timestamp");
+        });
+
+        // Configure StockData entity
+        modelBuilder.Entity<StockData>(entity =>
+        {
+            entity.ToTable("stock_data"); // PostgreSQL convention: lowercase table names
+
+            entity.HasIndex(s => s.Symbol);
+            entity.HasIndex(s => s.Timestamp);
+
+            entity.Property(s => s.Symbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            // Configure column names to follow PostgreSQL conventions
+            entity.Property(s => s.Id).HasColumnName("id");
+            entity.Property(s => s.Symbol).HasColumnName("symbol");
+            entity.Property(s => s.Price).HasColumnName("price");
+            entity.Property(s => s.Change).HasColumnName("change");
+            entity.Property(s => s.ChangePercent).HasColumnName("change_percent");
+            entity.Property(s => s.Volume).HasColumnName("volume");
+            entity.Property(s => s.MarketCap).HasColumnName("market_cap");
+            entity.Property(s => s.Timestamp)
+                  .HasColumnName("timestamp")
+                  .HasColumnType("timestamp with time zone");
+            entity.Property(s => s.Open).HasColumnName("open");
+            entity.Property(s => s.High).HasColumnName("high");
+            entity.Property(s => s.Low).HasColumnName("low");
+            entity.Property(s => s.PreviousClose).HasColumnName("previous_close");
         });
     }
 }

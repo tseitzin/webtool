@@ -8,20 +8,20 @@ using Azure.Identity;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-if (builder.Environment.IsProduction())
+// if (builder.Environment.IsProduction())
+// {
+try
 {
-    try
-    {
-        var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]!);
-        builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
-    }
-    catch (Exception ex)
-    {
-        // Log the error but don't throw - this allows the application to start
-        // even if Key Vault is not yet configured
-        Console.WriteLine($"Warning: Could not configure Azure Key Vault: {ex.Message}");
-    }
+    var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]!);
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 }
+catch (Exception ex)
+{
+    // Log the error but don't throw - this allows the application to start
+    // even if Key Vault is not yet configured
+    Console.WriteLine($"Warning: Could not configure Azure Key Vault: {ex.Message}");
+}
+// }
 
 // Add Application Insights
 // Add Application Insights only in production
@@ -140,7 +140,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IKeyVaultService, KeyVaultService>();
-
+builder.Services.AddScoped<StockSeederService>();
 
 // Add health checks in production
 if (builder.Environment.IsProduction())
@@ -199,6 +199,26 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
+// Initialize database and seed data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
+
+        // Seed stock data
+        var stockSeeder = services.GetRequiredService<StockSeederService>();
+        await stockSeeder.SeedInitialDataAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while initializing the database.");
     }
 }
 
