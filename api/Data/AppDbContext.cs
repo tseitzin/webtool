@@ -12,7 +12,8 @@ public class AppDbContext : DbContext
 
     public required DbSet<User> Users { get; set; }
     public required DbSet<AuditLog> AuditLogs { get; set; }
-    public required DbSet<StockData> StockData { get; set; }
+    public DbSet<StockData> StockData { get; set; }
+    public DbSet<UserFavoriteStock> UserFavoriteStocks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -104,6 +105,30 @@ public class AppDbContext : DbContext
             entity.Property(s => s.High).HasColumnName("high");
             entity.Property(s => s.Low).HasColumnName("low");
             entity.Property(s => s.PreviousClose).HasColumnName("previous_close");
+        });
+
+        // Configure UserFavoriteStock entity
+        modelBuilder.Entity<UserFavoriteStock>(entity =>
+        {
+            entity.ToTable("user_favorite_stocks");
+
+            entity.HasIndex(f => new { f.UserId, f.Symbol }).IsUnique();
+
+            entity.Property(f => f.Symbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(f => f.Id).HasColumnName("id");
+            entity.Property(f => f.UserId).HasColumnName("user_id");
+            entity.Property(f => f.Symbol).HasColumnName("symbol");
+            entity.Property(f => f.AddedAt)
+                  .HasColumnName("added_at")
+                  .HasColumnType("timestamp with time zone");
+
+            entity.HasOne(f => f.User)
+                  .WithMany()
+                  .HasForeignKey(f => f.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

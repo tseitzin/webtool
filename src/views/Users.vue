@@ -22,8 +22,6 @@ const auth = useAuthStore()
 const newPassword = ref('')
 const selectedUserId = ref<number | null>(null)
 const showResetModal = ref(false)
-const testSecret = ref('')
-const secretError = ref('')
 
 onMounted(async () => {
   if (!auth.user?.isAdmin) {
@@ -32,7 +30,6 @@ onMounted(async () => {
   try {
     const response = await api.get('/users')
     users.value = response.data
-    await fetchTestSecret()
   } catch (e) {
     error.value = 'Failed to load users'
     if ((e as any).response?.status === 401) {
@@ -40,16 +37,6 @@ onMounted(async () => {
     }
   }
 })
-
-const fetchTestSecret = async () => {
-  try {
-    const response = await api.get('/secrets/test')
-    testSecret.value = response.data.value
-  } catch (e: any) {
-    secretError.value = 'Failed to load secret'
-    console.error('Error fetching secret:', e)
-  }
-}
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -96,19 +83,6 @@ const resetPassword = async () => {
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">Registered Users</h1>
-
-    <!-- Test Secret Display -->
-    <div v-if="testSecret" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-      Test Secret Value: {{ testSecret }}
-    </div>
-    <div v-if="secretError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      {{ secretError }}
-    </div>
-    
-    <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      {{ error }}
-    </div>
-
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">

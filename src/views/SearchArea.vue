@@ -22,10 +22,17 @@ interface MarketSummary {
   mostActive: StockData[]
 }
 
+interface FavoriteStock {
+  symbol: string
+  addedAt: string
+}
+
 const router = useRouter()
 const auth = useAuthStore()
 const marketSummary = ref<MarketSummary | null>(null)
 const selectedStock = ref<StockData | null>(null)
+const favorites = ref<FavoriteStock[]>([])
+const favoriteStocks = ref<StockData[]>([])
 const error = ref('')
 const loading = ref(false)
 const searchSymbol = ref('')
@@ -35,7 +42,8 @@ onMounted(async () => {
     router.push('/access-denied')
     return
   }
-  await fetchMarketSummary()
+  await fetchMarketSummary(),
+  fetchFavorites()
 })
 
 const fetchMarketSummary = async () => {
@@ -50,6 +58,50 @@ const fetchMarketSummary = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const fetchFavorites = async () => {
+  try {
+    const response = await api.get('/favorites')
+    favorites.value = response.data
+    await fetchFavoriteStockData()
+  } catch (e: any) {
+    console.error('Error fetching favorites:', e)
+  }
+}
+
+const fetchFavoriteStockData = async () => {
+  try {
+    const stockPromises = favorites.value.map(fav => 
+      api.get(`/stockdata/${fav.symbol}`)
+    )
+    const responses = await Promise.all(stockPromises)
+    favoriteStocks.value = responses.map(r => r.data)
+  } catch (e: any) {
+    console.error('Error fetching favorite stock data:', e)
+  }
+}
+
+const addToFavorites = async (symbol: string) => {
+  try {
+    await api.post(`/favorites/${symbol}`)
+    await fetchFavorites()
+  } catch (e: any) {
+    error.value = e.response?.data?.message || 'Failed to add to favorites'
+  }
+}
+
+const removeFromFavorites = async (symbol: string) => {
+  try {
+    await api.delete(`/favorites/${symbol}`)
+    await fetchFavorites()
+  } catch (e: any) {
+    error.value = 'Failed to remove from favorites'
+  }
+}
+
+const isStockFavorited = (symbol: string) => {
+  return favorites.value.some(f => f.symbol === symbol)
 }
 
 const searchStock = async () => {
@@ -96,6 +148,8 @@ const formatPercent = (num: number) => {
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
       </div>
 
+      
+
       <!-- Stock Search -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex gap-4">
@@ -116,25 +170,39 @@ const formatPercent = (num: number) => {
 
         <!-- Selected Stock Details -->
         <div v-if="selectedStock" class="mt-4">
-          <div class="bg-gray-200 p-2 rounded-lg">
-              <h1 class="text-center ml-3 text-xl font-bold">{{ selectedStock.symbol }}</h1>
-            </div>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">{{ selectedStock.symbol }}</h3>
+            <button
+              v-if="!isStockFavorited(selectedStock.symbol)"
+              @click="addToFavorites(selectedStock.symbol)"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Add to Favorites
+            </button>
+            <button
+              v-else
+              @click="removeFromFavorites(selectedStock.symbol)"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Remove from Favorites
+            </button>
+          </div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-100 p-4 rounded-lg">
+            <div class="bg-gray-50 p-4 rounded-lg">
               <h3 class="text-sm text-gray-500">Price</h3>
               <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.price) }}</p>
             </div>
-            <div class="bg-gray-100 p-4 rounded-lg">
+            <div class="bg-gray-50 p-4 rounded-lg">
               <h3 class="text-sm text-gray-500">Change</h3>
               <p :class="['text-lg font-semibold', selectedStock.change >= 0 ? 'text-green-600' : 'text-red-600']">
                 {{ formatCurrency(selectedStock.change) }} ({{ formatPercent(selectedStock.changePercent) }})
               </p>
             </div>
-            <div class="bg-gray-100 p-4 rounded-lg">
+            <div class="bg-gray-50 p-4 rounded-lg">
               <h3 class="text-sm text-gray-500">Volume</h3>
               <p class="text-lg font-semibold">{{ formatNumber(selectedStock.volume) }}</p>
             </div>
-            <div class="bg-gray-100 p-4 rounded-lg">
+            <div class="bg-gray-50 p-4 rounded-lg">
               <h3 class="text-sm text-gray-500">Market Cap</h3>
               <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.marketCap) }}</p>
             </div>
