@@ -12,8 +12,9 @@ public class AppDbContext : DbContext
 
     public required DbSet<User> Users { get; set; }
     public required DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<StockData> StockData { get; set; }
-    public DbSet<UserFavoriteStock> UserFavoriteStocks { get; set; }
+    public required DbSet<StockData> StockData { get; set; }
+    public required DbSet<UserFavoriteStock> UserFavoriteStocks { get; set; }
+    public required DbSet<UserOwnedStock> UserOwnedStocks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -128,6 +129,36 @@ public class AppDbContext : DbContext
             entity.HasOne(f => f.User)
                   .WithMany()
                   .HasForeignKey(f => f.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure UserOwnedStock entity
+        modelBuilder.Entity<UserOwnedStock>(entity =>
+        {
+            entity.ToTable("user_owned_stocks");
+
+            entity.HasIndex(o => new { o.UserId, o.Symbol });
+
+            entity.Property(o => o.Symbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(o => o.Notes)
+                  .HasMaxLength(500);
+
+            entity.Property(o => o.Id).HasColumnName("id");
+            entity.Property(o => o.UserId).HasColumnName("user_id");
+            entity.Property(o => o.Symbol).HasColumnName("symbol");
+            entity.Property(o => o.Quantity).HasColumnName("quantity");
+            entity.Property(o => o.PurchasePrice).HasColumnName("purchase_price");
+            entity.Property(o => o.PurchaseDate)
+                  .HasColumnName("purchase_date")
+                  .HasColumnType("timestamp with time zone");
+            entity.Property(o => o.Notes).HasColumnName("notes");
+
+            entity.HasOne(o => o.User)
+                  .WithMany()
+                  .HasForeignKey(o => o.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }
