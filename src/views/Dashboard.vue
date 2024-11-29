@@ -48,6 +48,9 @@ const error = ref('')
 const loading = ref(false)
 const refreshInterval = ref<number | null>(null)
 const showAddPositionModal = ref(false)
+const showSellModal = ref(false)
+const selectedStock = ref<(StockData & { position: OwnedStock }) | null>(null)
+const sellQuantity = ref<number>(0)
 const addPositionForm = ref<AddPositionForm>({
   symbol: '',
   quantity: 0,
@@ -86,6 +89,26 @@ const openPurchaseModal = (stock: StockData) => {
     notes: ''
   }
   showAddPositionModal.value = true
+}
+
+const openSellModal = (stock: StockData & { position: OwnedStock }) => {
+  selectedStock.value = stock
+  sellQuantity.value = 0
+  showSellModal.value = true
+}
+
+const sellPosition = async () => {
+  if (!selectedStock.value || !sellQuantity.value) return
+
+  try {
+    await api.post(`/portfolio/${selectedStock.value.position.id}/sell`, {
+      quantity: sellQuantity.value
+    })
+    showSellModal.value = false
+    await fetchPortfolioData()
+  } catch (e: any) {
+    error.value = e.response?.data?.message || 'Failed to sell position'
+  }
 }
 
 // Auto-refresh data every 60 seconds
@@ -195,16 +218,16 @@ const addPosition = async () => {
   }
 }
 
-const removePosition = async (id: number) => {
-  if (!confirm('Are you sure you want to remove this position?')) return
+// const removePosition = async (id: number) => {
+//   if (!confirm('Are you sure you want to remove this position?')) return
 
-  try {
-    await api.delete(`/portfolio/${id}`)
-    ownedStocks.value = ownedStocks.value.filter(stock => stock.position.id !== id)
-  } catch (e: any) {
-    error.value = 'Failed to remove position'
-  }
-}
+//   try {
+//     await api.delete(`/portfolio/${id}`)
+//     ownedStocks.value = ownedStocks.value.filter(stock => stock.position.id !== id)
+//   } catch (e: any) {
+//     error.value = 'Failed to remove position'
+//   }
+// }
 
 const formatNumber = (num: number) => {
   return new Intl.NumberFormat('en-US').format(num)
@@ -339,18 +362,20 @@ const navigateToSearch = () => {
         </div>
       </div>
 
-      <hr class="h-px my-8 bg-gray-700 border-0 dark:bg-gray-700">
+      <div class="mb-6 mt-9">
+        <hr class="h-px bg-gray-700 border-0 dark:bg-gray-700">
+      </div>
 
       <!-- Portfolio Section -->
-      <div class="mb-12">
-        <div class="flex justify-between items-center mb-6">
+      <div>
+        <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Your Portfolio</h2>
-          <button
+          <!-- <button
             @click="showAddPositionModal = true"
             class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             Add Position
-          </button>
+          </button> -->
         </div>
 
         <div v-if="ownedStocks.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
@@ -373,13 +398,15 @@ const navigateToSearch = () => {
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xl font-bold">{{ stock.symbol }}</h3>
               <button
-                @click="removePosition(stock.position.id)"
-                class="text-red-600 hover:text-red-800 transition-colors"
-                title="Remove position"
+                @click="openSellModal(stock)"
+                class="text-red-600 hover:text-red-800 transition-colors flex items-center"
+                title="Sell position"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                  <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
                 </svg>
+                Sell
               </button>
             </div>
 
@@ -432,7 +459,11 @@ const navigateToSearch = () => {
         </div>
       </div>
 
-      <div class="flex flex-row justify-between items-center mt-8">
+      <div class="mb-6 mt-9">
+        <hr class="h-px bg-gray-700 border-0 dark:bg-gray-700">
+      </div>
+
+      <div class="flex flex-row justify-between items-center mt-5">
         <h2 class="text-xl font-bold mb-4">Portfolio Summary</h2>
       </div>
 
@@ -540,6 +571,72 @@ const navigateToSearch = () => {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Sell Position Modal -->
+    <div v-if="showSellModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Sell Position</h2>
+        
+        <div v-if="selectedStock" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-500">Symbol</p>
+              <p class="text-lg font-semibold">{{ selectedStock.symbol }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Current Price</p>
+              <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.price) }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-500">Shares Owned</p>
+              <p class="text-lg font-semibold">{{ selectedStock.position.quantity }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Total Value</p>
+              <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.position.quantity * selectedStock.price) }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Quantity to Sell</label>
+            <input
+              v-model="sellQuantity"
+              type="number"
+              step="0.0001"
+              required
+              :max="selectedStock.position.quantity"
+              min="0.0001"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-500">Sale Summary</p>
+            <p class="text-lg font-semibold">{{ formatCurrency(sellQuantity * selectedStock.price) }}</p>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button
+              type="button"
+              @click="showSellModal = false"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              @click="sellPosition"
+              :disabled="!sellQuantity || sellQuantity <= 0 || sellQuantity > selectedStock.position.quantity"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
+            >
+              Sell Shares
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

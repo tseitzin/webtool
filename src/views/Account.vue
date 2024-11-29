@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import api from '../api/axios'
+import router from '../router';
 
 const auth = useAuthStore()
 const currentPassword = ref('')
@@ -15,6 +16,12 @@ const error = ref('')
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    router.push('/access-denied')
+  }
+})
 
 const updatePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {

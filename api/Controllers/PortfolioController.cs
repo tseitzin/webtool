@@ -61,6 +61,34 @@ public class PortfolioController : ControllerBase
         return Ok(position);
     }
 
+    [HttpPost("{id}/sell")]
+    public async Task<ActionResult<UserOwnedStock>> SellPosition(int id, [FromBody] SellPositionRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var position = await _context.UserOwnedStocks
+            .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+
+        if (position == null)
+        {
+            return NotFound();
+        }
+
+        if (request.Quantity > position.Quantity)
+        {
+            return BadRequest("Cannot sell more shares than owned");
+        }
+
+        position.Quantity -= request.Quantity;
+
+        if (position.Quantity == 0)
+        {
+            _context.UserOwnedStocks.Remove(position);
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(position);
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePosition(int id, [FromBody] UpdatePositionRequest request)
     {
