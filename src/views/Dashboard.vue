@@ -81,12 +81,15 @@ const returnPercentage = computed(() => {
 })
 
 const openPurchaseModal = (stock: StockData) => {
+  // Check if we already own this stock
+  const existingPosition = ownedStocks.value.find(s => s.symbol === stock.symbol)
+  
   addPositionForm.value = {
     symbol: stock.symbol,
     quantity: 0,
     purchasePrice: stock.price,
     purchaseDate: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: existingPosition?.position.notes || ''
   }
   showAddPositionModal.value = true
 }
@@ -204,13 +207,26 @@ const removeFromFavorites = async (symbol: string) => {
 
 const addPosition = async () => {
   try {
-    await api.post('/portfolio', {
-      symbol: addPositionForm.value.symbol,
-      quantity: addPositionForm.value.quantity,
-      purchasePrice: addPositionForm.value.purchasePrice,
-      purchaseDate: new Date(addPositionForm.value.purchaseDate),
-      notes: addPositionForm.value.notes
-    })
+    // Check if we already own this stock
+    const existingPosition = ownedStocks.value.find(s => s.symbol === addPositionForm.value.symbol)
+    
+    if (existingPosition) {
+      // Update existing position
+      await api.put(`/portfolio/${existingPosition.position.id}`, {
+        quantity: existingPosition.position.quantity + addPositionForm.value.quantity,
+        notes: addPositionForm.value.notes
+      })
+    } else {
+      // Create new position
+      await api.post('/portfolio', {
+        symbol: addPositionForm.value.symbol,
+        quantity: addPositionForm.value.quantity,
+        purchasePrice: addPositionForm.value.purchasePrice,
+        purchaseDate: new Date(addPositionForm.value.purchaseDate),
+        notes: addPositionForm.value.notes
+      })
+    }
+    
     showAddPositionModal.value = false
     await fetchPortfolioData()
   } catch (e: any) {

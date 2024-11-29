@@ -72,6 +72,29 @@ builder.Services.AddSwaggerGen(c =>
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
+// Configure CORS before other middleware
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DefaultPolicy",
+        policy =>
+        {
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else
+            {
+                policy.WithOrigins("https://stock-navigator.azurewebsites.net")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+        });
+});
+
 // Add DbContext
 // builder.Services.AddDbContext<AppDbContext>(options =>
 //     options.UseSqlite("Data Source=app.db"));
@@ -96,28 +119,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     });
 });
 
-// Configure CORS before other middleware
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("DefaultPolicy",
-        policy =>
-        {
-            if (builder.Environment.IsDevelopment())
-            {
-                policy.WithOrigins("http://localhost:5173")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
-            }
-            else
-            {
-                policy.WithOrigins("https://stock-navigator.azurewebsites.net")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
-            }
-        });
-});
 
 //var jwtKey = builder.Configuration["Jwt:Key"];
 // Configure JWT authentication
