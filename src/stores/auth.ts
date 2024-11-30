@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 import api from '../api/axios'
 
 interface User {
