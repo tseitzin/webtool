@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import api from '../api/axios'
 
 interface User {
@@ -40,6 +40,11 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = JSON.parse(storedUser)
       isAuthenticated.value = true
     }
+
+    // Add event listener for tab/window close
+    window.addEventListener('beforeunload', () => {
+      logout()
+    })
   }
 
   async function login(email: string, password: string) {
