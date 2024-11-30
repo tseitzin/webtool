@@ -484,9 +484,9 @@ const navigateToSearch = () => {
       </div>
 
       <!-- Portfolio Summary -->
-      <div v-if="ownedStocks.length > 0" class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
             <p class="text-sm text-gray-500">Total Investment</p>
             <p class="text-xl font-semibold">{{ formatCurrency(totalInvestment) }}</p>

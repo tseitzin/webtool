@@ -69,12 +69,8 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- Remember Me and Forgot Password Links -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input id="remember_me" name="remember_me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-            <label for="remember_me" class="ml-2 block text-sm text-gray-900">Remember me</label>
-          </div>
+        <!-- Forgot Password Link -->
+        <div class="flex justify-end">
           <div class="text-sm">
             <router-link to="/forgot-password" class="font-medium text-indigo-600 hover:text-indigo-500">
               Forgot your password?
