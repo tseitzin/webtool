@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import api from '../api/axios'
+import { useRouter } from 'vue-router';
+import { isTokenExpired } from '../utils/tokenUtils';
+import { activityMonitor } from '../utils/activityMonitor';
+import { dismissAllToasts } from '../utils/toast';
 
 interface User {
   email: string;
@@ -19,6 +23,8 @@ interface AuthResponse {
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)
+  const tokenCheckInterval = ref<number | null>(null)
+  const router = useRouter()
 
   const parseJwt = (token: string) => {
     try {
@@ -33,16 +39,46 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const startTokenExpirationCheck = (token: string) => {
+    // Clear any existing interval
+    if (tokenCheckInterval.value) {
+      clearInterval(tokenCheckInterval.value)
+    }
+
+    // Set up new interval to check token expiration
+    tokenCheckInterval.value = window.setInterval(() => {
+      if (isTokenExpired(token)) {
+        dismissAllToasts()
+        logout()
+        router.push('/login')
+      }
+    }, 30000) // Check every 30 seconds
+  }
+
   // Initialize state from localStorage
   const initializeAuth = () => {
+    const token = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      user.value = JSON.parse(storedUser)
-      isAuthenticated.value = true
+    
+    if (token && storedUser) {
+      if (!isTokenExpired(token)) {
+        user.value = JSON.parse(storedUser)
+        isAuthenticated.value = true
+        startTokenExpirationCheck(token)
+        activityMonitor.startMonitoring(() => {
+          dismissAllToasts()
+          logout()
+          router.push('/login')
+        })
+      } else {
+        dismissAllToasts()
+        logout()
+      }
     }
 
     // Add event listener for tab/window close
     window.addEventListener('beforeunload', () => {
+      dismissAllToasts()
       logout()
     })
   }
@@ -74,6 +110,17 @@ export const useAuthStore = defineStore('auth', () => {
       // Store in localStorage
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(user.value))
+
+      // Start token expiration check
+      startTokenExpirationCheck(data.token)
+
+      // Start activity monitoring
+      activityMonitor.startMonitoring(() => {
+        dismissAllToasts()
+        logout()
+        router.push('/login')
+      })
+
     } catch (error) {
       throw new Error('Invalid credentials')
     }
@@ -107,6 +154,17 @@ export const useAuthStore = defineStore('auth', () => {
       // Store in localStorage
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(user.value))
+
+      // Start token expiration check
+      startTokenExpirationCheck(data.token)
+
+      // Start activity monitoring
+      activityMonitor.startMonitoring(() => {
+        dismissAllToasts()
+        logout()
+        router.push('/login')
+      })
+
     } catch (error) {
       throw new Error('Registration failed')
     }
@@ -117,10 +175,30 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated.value = false
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+
+    // Clear token check interval
+    if (tokenCheckInterval.value) {
+      clearInterval(tokenCheckInterval.value)
+      tokenCheckInterval.value = null
+    }
+
+    // Stop activity monitoring
+    activityMonitor.stopMonitoring()
+    dismissAllToasts()
   }
 
   // Initialize auth state when store is created
   initializeAuth()
+
+  // Cleanup on component unmount
+  onBeforeUnmount(() => {
+    if (tokenCheckInterval.value) {
+      clearInterval(tokenCheckInterval.value)
+    }
+    // Stop activity monitoring
+    activityMonitor.stopMonitoring()
+    dismissAllToasts()
+  })
 
   return {
     user,
