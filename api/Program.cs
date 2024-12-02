@@ -6,6 +6,9 @@ using api.Data;
 using api.Services;
 using Azure.Identity;
 using Microsoft.OpenApi.Models;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 // if (builder.Environment.IsProduction())
@@ -22,6 +25,21 @@ catch (Exception ex)
     Console.WriteLine($"Warning: Could not configure Azure Key Vault: {ex.Message}");
 }
 // }
+
+// Add rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
 
 // Add Application Insights
 // Add Application Insights only in production
@@ -169,6 +187,18 @@ if (!app.Environment.IsDevelopment())
 
 // Use CORS before authentication and authorization
 app.UseCors("DefaultPolicy");
+
+// Configure forwarded headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Use security headers middleware
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// Enable rate limiting
+app.UseRateLimiter();
 
 app.UseRouting();
 
