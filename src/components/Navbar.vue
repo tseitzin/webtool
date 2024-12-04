@@ -1,52 +1,60 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const router = useRouter()
+const isMenuOpen = ref(false)
 
 const handleLogout = () => {
   auth.logout()
   router.push('/login')
 }
+
+const closeMenu = () => {
+  isMenuOpen.value = false
+}
 </script>
 
 <template>
-  <nav class="bg-gray-800 p-4">
+  <nav class="bg-gray-800">
     <div class="container">
-      <div class="navbar_div">
-        <router-link 
-          v-if="!auth.isAuthenticated"
-          to="/" 
-          class="navbar_link"
-          active-class="active"
-        >
-          Home
-        </router-link>
-        <router-link 
-          v-if="auth.isAuthenticated"
-          to="/dashboard" 
-          class="navbar_link"
-          active-class="active"
-        >
-          Dashboard
-        </router-link>
-        <router-link 
-          v-if="auth.isAuthenticated"
-          to="/search-area" 
-          class="navbar_link"
-          active-class="active"
-        >
-          Stock Search
-        </router-link>
-        <router-link 
-          v-if="auth.isAuthenticated && auth.user?.isAdmin"
-          to="/users" 
-          class="navbar_link"
-          active-class="active"
-        >
-          Users
-        </router-link>
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex justify-between items-center py-4">
+        <div class="flex space-x-4">
+          <router-link 
+            v-if="!auth.isAuthenticated"
+            to="/" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Home
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/dashboard" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Dashboard
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/search-area" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Stock Search
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated && auth.user?.isAdmin"
+            to="/users" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Users
+          </router-link>
           <router-link 
             v-if="auth.isAuthenticated && auth.user?.isAdmin"
             to="/audit-logs" 
@@ -54,41 +62,169 @@ const handleLogout = () => {
             active-class="active"
           >
             Audit Logs
-        </router-link>
+          </router-link>
+        </div>
+        <div class="flex space-x-4">
+          <template v-if="!auth.isAuthenticated">
+            <router-link 
+              to="/login" 
+              class="navbar_link"
+              active-class="active"
+            >
+              Login
+            </router-link>
+            <router-link 
+              to="/register" 
+              class="navbar_link"
+              active-class="active"
+            >
+              Register
+            </router-link>
+          </template>
+          <template v-else>
+            <router-link 
+              to="/account" 
+              class="navbar_link"
+              active-class="active"
+            >
+              Account
+            </router-link>
+            <button 
+              @click="handleLogout" 
+              class="navbar_link"
+              active-class="active"
+            >
+              Logout
+            </button>
+          </template>
+        </div>
       </div>
-      <div class="navbar_div">
-        <template v-if="!auth.isAuthenticated">
+
+      <!-- Mobile Navigation -->
+      <div class="md:hidden">
+        <div class="flex justify-between items-center py-4">
           <router-link 
-            to="/login" 
-            class="navbar_link"
-            active-class="active"
+            to="/"
+            class="text-white text-xl font-bold"
           >
-            Login
-          </router-link>
-          <router-link 
-            to="/register" 
-            class="navbar_link"
-            active-class="active"
-          >
-            Register
-          </router-link>
-        </template>
-        <template v-else>
-          <router-link 
-            to="/account" 
-            class="navbar_link"
-            active-class="active"
-          >
-            Account
+            Stock Nav
           </router-link>
           <button 
-            @click="handleLogout" 
-            class="navbar_link"
-            active-class="active"
+            @click="isMenuOpen = !isMenuOpen"
+            class="text-gray-300 hover:text-white focus:outline-none"
           >
-            Logout
+            <svg 
+              class="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path 
+                v-if="!isMenuOpen"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+              <path
+                v-else
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
-        </template>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div 
+          v-show="isMenuOpen"
+          class="pb-4"
+        >
+          <div class="flex flex-col space-y-2">
+            <router-link 
+              v-if="!auth.isAuthenticated"
+              to="/" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Home
+            </router-link>
+            <router-link 
+              v-if="auth.isAuthenticated"
+              to="/dashboard" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Dashboard
+            </router-link>
+            <router-link 
+              v-if="auth.isAuthenticated"
+              to="/search-area" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Stock Search
+            </router-link>
+            <router-link 
+              v-if="auth.isAuthenticated && auth.user?.isAdmin"
+              to="/users" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Users
+            </router-link>
+            <router-link 
+              v-if="auth.isAuthenticated && auth.user?.isAdmin"
+              to="/audit-logs" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Audit Logs
+            </router-link>
+
+            <template v-if="!auth.isAuthenticated">
+              <router-link 
+                to="/login" 
+                class="mobile_link"
+                active-class="active"
+                @click="closeMenu"
+              >
+                Login
+              </router-link>
+              <router-link 
+                to="/register" 
+                class="mobile_link"
+                active-class="active"
+                @click="closeMenu"
+              >
+                Register
+              </router-link>
+            </template>
+            <template v-else>
+              <router-link 
+                to="/account" 
+                class="mobile_link"
+                active-class="active"
+                @click="closeMenu"
+              >
+                Account
+              </router-link>
+              <button 
+                @click="() => { handleLogout(); closeMenu(); }"
+                class="mobile_link text-left"
+              >
+                Logout
+              </button>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -96,39 +232,46 @@ const handleLogout = () => {
 
 <style scoped>
 .container {
-    max-width: 100%; /* Adjusts to responsive sizes based on screen width */
-    margin-left: auto; /* Centers the container */
-    margin-right: auto; /* Centers the container */
-    padding-left: 3rem; 
-    padding-right: 3rem; 
-    display: flex; /* Makes the container a flexbox */
-    align-items: center; /* Centers items vertically */
-    justify-content: space-between; /* Distributes space evenly between items */
-}
-
-.navbar_div {
-    display: flex; /* Makes the container a flexbox */
-    gap: 1rem; /* Adds 1rem of horizontal space between each child (same as space-x-4) */
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .navbar_link {
-  color: #c8ced8; /* text-gray-300 */
-  padding-left: 0.75rem; /* px-3 */
-  padding-right: 0.75rem; /* px-3 */
-  padding-top: 0.5rem; /* py-2 */
-  padding-bottom: 0.5rem; /* py-2 */
-  border-radius: 0.375rem; /* rounded-md */
-  font-size: 1rem; /* text-xl */
-  font-weight: 500; /* font-medium */
+  color: #c8ced8;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 500;
   transition: color 0.2s;
 }
 
 .navbar_link:hover {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .navbar_link.active {
-    color: #a0c676; /* Color when the link is clicked */
+  color: #a0c676;
 }
 
+.mobile_link {
+  color: #c8ced8;
+  padding: 0.75rem 1rem;
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.mobile_link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile_link.active {
+  color: #a0c676;
+  background-color: rgba(160, 198, 118, 0.1);
+}
 </style>

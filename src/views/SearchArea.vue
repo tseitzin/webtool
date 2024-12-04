@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import api from '../api/axios'
+import MarketSummaryCard from '../components/MarketSummaryCard.vue'
+import StockSearchResult from '../components/StockSearchResult.vue'
 
 interface StockData {
   symbol: string
@@ -42,7 +44,7 @@ onMounted(async () => {
     router.push('/access-denied')
     return
   }
-  await fetchMarketSummary(),
+  await fetchMarketSummary()
   fetchFavorites()
 })
 
@@ -82,21 +84,16 @@ const fetchFavoriteStockData = async () => {
   }
 }
 
-const addToFavorites = async (symbol: string) => {
+const toggleFavorite = async (symbol: string) => {
   try {
-    await api.post(`/favorites/${symbol}`)
+    if (isStockFavorited(symbol)) {
+      await api.delete(`/favorites/${symbol}`)
+    } else {
+      await api.post(`/favorites/${symbol}`)
+    }
     await fetchFavorites()
   } catch (e: any) {
-    error.value = e.response?.data?.message || 'Failed to add to favorites'
-  }
-}
-
-const removeFromFavorites = async (symbol: string) => {
-  try {
-    await api.delete(`/favorites/${symbol}`)
-    await fetchFavorites()
-  } catch (e: any) {
-    error.value = 'Failed to remove from favorites'
+    error.value = e.response?.data?.message || 'Failed to update favorites'
   }
 }
 
@@ -120,16 +117,8 @@ const searchStock = async () => {
   }
 }
 
-const formatNumber = (num: number) => {
-  return new Intl.NumberFormat('en-US').format(num)
-}
-
-const formatCurrency = (num: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num)
-}
-
-const formatPercent = (num: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: 2 }).format(num / 100)
+const navigateToSearch = () => {
+  router.push('/search-area')
 }
 </script>
 
@@ -139,20 +128,24 @@ const formatPercent = (num: number) => {
       <h1 class="text-3xl font-bold mb-8">Stock Search Area</h1>
 
       <!-- Error Message -->
-      <div v-if="error" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <div 
+        v-if="error" 
+        class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
+      >
         {{ error }}
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center items-center py-8">
+      <div 
+        v-if="loading" 
+        class="flex justify-center items-center py-8"
+      >
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
       </div>
 
-      
-
       <!-- Stock Search -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex gap-4">
+        <div class="flex flex-col sm:flex-row gap-4">
           <input
             v-model="searchSymbol"
             type="text"
@@ -169,87 +162,34 @@ const formatPercent = (num: number) => {
         </div>
 
         <!-- Selected Stock Details -->
-        <div v-if="selectedStock" class="mt-4">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">{{ selectedStock.symbol }}</h3>
-            <button
-              v-if="!isStockFavorited(selectedStock.symbol)"
-              @click="addToFavorites(selectedStock.symbol)"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Add to Favorites
-            </button>
-            <button
-              v-else
-              @click="removeFromFavorites(selectedStock.symbol)"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Remove from Favorites
-            </button>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h3 class="text-sm text-gray-500">Price</h3>
-              <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.price) }}</p>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h3 class="text-sm text-gray-500">Change</h3>
-              <p :class="['text-lg font-semibold', selectedStock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                {{ formatCurrency(selectedStock.change) }} ({{ formatPercent(selectedStock.changePercent) }})
-              </p>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h3 class="text-sm text-gray-500">Volume</h3>
-              <p class="text-lg font-semibold">{{ formatNumber(selectedStock.volume) }}</p>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h3 class="text-sm text-gray-500">Market Cap</h3>
-              <p class="text-lg font-semibold">{{ formatCurrency(selectedStock.marketCap) }}</p>
-            </div>
-          </div>
-        </div>
+        <StockSearchResult
+          v-if="selectedStock"
+          :stock="selectedStock"
+          :is-favorited="isStockFavorited(selectedStock.symbol)"
+          @toggle-favorite="toggleFavorite"
+        />
       </div>
 
       <!-- Market Summary -->
-      <div v-if="marketSummary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Top Gainers -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div>
-            <h2 class="bg-gray-200 rounded-lg p-3 text-center text-xl font-semibold mb-4 text-green-600">Top Gainers</h2>
-          </div>
-          <div class="space-y-4">
-            <div v-for="stock in marketSummary.topGainers" :key="stock.symbol" class="flex justify-between items-center">
-              <span class="font-medium">{{ stock.symbol }}</span>
-              <span class="text-green-600">{{ formatPercent(stock.changePercent) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Top Losers -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div>
-            <h2 class="bg-gray-200 rounded-lg p-3 text-center text-xl font-semibold mb-4 text-red-600">Top Losers</h2>
-          </div>
-          <div class="space-y-4">
-            <div v-for="stock in marketSummary.topLosers" :key="stock.symbol" class="flex justify-between items-center">
-              <span class="font-medium">{{ stock.symbol }}</span>
-              <span class="text-red-600">{{ formatPercent(stock.changePercent) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Most Active -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div>
-            <h2 class="bg-gray-200 rounded-lg p-3 text-center text-xl font-semibold mb-4 text-indigo-600">Most Active</h2>
-          </div>
-          <div class="space-y-4">
-            <div v-for="stock in marketSummary.mostActive" :key="stock.symbol" class="flex justify-between items-center">
-              <span class="font-medium">{{ stock.symbol }}</span>
-              <span class="text-gray-600">{{ formatNumber(stock.volume) }}</span>
-            </div>
-          </div>
-        </div>
+      <div 
+        v-if="marketSummary" 
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <MarketSummaryCard
+          title="Top Gainers"
+          :stocks="marketSummary.topGainers"
+          type="gainers"
+        />
+        <MarketSummaryCard
+          title="Top Losers"
+          :stocks="marketSummary.topLosers"
+          type="losers"
+        />
+        <MarketSummaryCard
+          title="Most Active"
+          :stocks="marketSummary.mostActive"
+          type="active"
+        />
       </div>
     </div>
   </div>
