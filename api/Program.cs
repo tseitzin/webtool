@@ -11,6 +11,36 @@ using Microsoft.AspNetCore.HttpOverrides;
 using api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DefaultPolicy",
+        policy =>
+        {
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else if (builder.Environment.IsDevelopment())
+            {
+                policy.WithOrigins("http://10.0.0.12:5173")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else
+            {
+                policy.WithOrigins("https://stock-navigator.azurewebsites.net")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+        });
+});
+
 // if (builder.Environment.IsProduction())
 // {
 try
@@ -91,27 +121,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddHttpContextAccessor();
 
 // Configure CORS before other middleware
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("DefaultPolicy",
-        policy =>
-        {
-            if (builder.Environment.IsDevelopment())
-            {
-                policy.WithOrigins("http://localhost:5173")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
-            }
-            else
-            {
-                policy.WithOrigins("https://stock-navigator.azurewebsites.net")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
-            }
-        });
-});
 
 // Add DbContext
 // builder.Services.AddDbContext<AppDbContext>(options =>

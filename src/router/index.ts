@@ -77,11 +77,21 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   
+  // Initialize auth state if not already done
+  if (!authStore.isAuthenticated) {
+    authStore.initializeAuth()
+  }
+
+  // Wait for a brief moment to allow auth state to be properly initialized
+  await new Promise(resolve => setTimeout(resolve, 100))
+
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
+  } else if (to.meta.requiresAdmin && !authStore.user?.isAdmin) {
+    next('/access-denied')
   } else {
     next()
   }

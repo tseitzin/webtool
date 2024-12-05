@@ -117,9 +117,6 @@ const searchStock = async () => {
   }
 }
 
-const navigateToSearch = () => {
-  router.push('/search-area')
-}
 </script>
 
 <template>
