@@ -34,7 +34,7 @@ export class ActivityMonitor {
         this.currentToastId.value = null
       }
       if (SHOW_ACTIVITY_FEEDBACK) {
-        showSuccessToast('Session extended due to activity', 3000)
+        showSuccessToast('Session extended 15 minutes due to activity', 3000)
       }
     }
 
