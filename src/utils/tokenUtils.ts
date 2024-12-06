@@ -8,6 +8,14 @@ interface DecodedToken {
   IsAdmin: string;
 }
 
+export const parseJwt = (token: string): DecodedToken | null => {
+  try {
+    return jwtDecode<DecodedToken>(token)
+  } catch {
+    return null
+  }
+}
+
 export const isTokenExpired = (token: string): boolean => {
   try {
     const decoded = jwtDecode<DecodedToken>(token);

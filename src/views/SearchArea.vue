@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { restClient } from '@polygon.io/client-js';
 import api from '../api/axios'
 import MarketSummaryCard from '../components/MarketSummaryCard.vue'
 import StockSearchResult from '../components/StockSearchResult.vue'
@@ -39,28 +40,42 @@ const error = ref('')
 const loading = ref(false)
 const searchSymbol = ref('')
 
+const APIKEY = 'RhKpsxpuUpC9QkFx_4nd_Gd8Fuezoqae'
+
+
 onMounted(async () => {
   if (!auth.isAuthenticated) {
     router.push('/access-denied')
     return
   }
-  await fetchMarketSummary()
-  fetchFavorites()
+  await fetchStockData()
+  await fetchFavorites()
 })
 
-const fetchMarketSummary = async () => {
-  loading.value = true
-  error.value = ''
-  try {
-    const response = await api.get('/stockdata/summary')
-    marketSummary.value = response.data
-  } catch (e: any) {
-    error.value = 'Failed to load market summary'
-    console.error('Error:', e)
-  } finally {
-    loading.value = false
-  }
+const fetchStockData = async () => {
+  const client = restClient(APIKEY);
+  client.stocks.aggregates("AAPL", 1, "day", "2023-01-01", "2023-04-14").then((data) => {
+	console.log(data);
+  }).catch(e => {
+    console.error("Error retrieving data: ", e)
+  });
 }
+
+
+
+// const fetchMarketSummary = async () => {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const response = await api.get('/stockdata/summary')
+//     marketSummary.value = response.data
+//   } catch (e: any) {
+//     error.value = 'Failed to load market summary'
+//     console.error('Error:', e)
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 const fetchFavorites = async () => {
   try {

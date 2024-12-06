@@ -1,114 +1,54 @@
 import { defineStore } from 'pinia'
-import { ref, onBeforeUnmount } from 'vue'
-import api from '../api/axios'
-import { isTokenExpired } from '../utils/tokenUtils'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../api/axios'
+import { AuthService } from '../services/authService'
+import { TokenService } from '../services/tokenService'
+import { SessionService } from '../services/sessionService'
 import { activityMonitor } from '../utils/activityMonitor'
 import { dismissAllToasts } from '../utils/toast'
-
-interface User {
-  email: string;
-  name: string;
-  token: string;
-  isAdmin: boolean;
-}
-
-interface AuthResponse {
-  token: string;
-  email: string;
-  name: string;
-  isAdmin: boolean;
-}
+import type { User, AuthResponse } from '../types/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)
-  const tokenCheckInterval = ref<number | null>(null)
   const router = useRouter()
-
-  // const parseJwt = (token: string) => {
-  //   try {
-  //     const base64Url = token.split('.')[1]
-  //     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-  //     const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-  //       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-  //     }).join(''))
-  //     return JSON.parse(jsonPayload)
-  //   } catch (e) {
-  //     return null
-  //   }
-  // }
-
-  const startTokenExpirationCheck = (token: string) => {
-    if (tokenCheckInterval.value) {
-      clearInterval(tokenCheckInterval.value)
-    }
-
-    tokenCheckInterval.value = window.setInterval(() => {
-      if (isTokenExpired(token)) {
-        dismissAllToasts()
-        logout()
-        router.push('/login')
-      }
-    }, 60000) // Check every minute
-  }
+  const authService = new AuthService()
+  const tokenService = new TokenService()
+  const sessionService = SessionService.getInstance()
 
   const initializeAuth = () => {
-    const token = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
+    const token = tokenService.getToken()
+    const storedUser = tokenService.getStoredUser()
     
-    if (token && storedUser) {
-      if (!isTokenExpired(token)) {
-        const parsedUser = JSON.parse(storedUser)
-        user.value = parsedUser
-        isAuthenticated.value = true
-        startTokenExpirationCheck(token)
-        activityMonitor.startMonitoring(() => {
-          dismissAllToasts()
-          logout()
-          router.push('/login')
-        })
-
-        // Set the token in axios headers
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      } else {
-        // Clear invalid token
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        dismissAllToasts()
-      }
+    if (token && storedUser && !tokenService.isTokenExpired(token)) {
+      user.value = storedUser
+      isAuthenticated.value = true
+      tokenService.startTokenCheck(() => handleTokenExpiration())
+      activityMonitor.startMonitoring(() => handleTokenExpiration())
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      
+      // Set up session close handler
+      sessionService.onClose(() => {
+        logout()
+        tokenService.clearTokens()
+      })
+    } else {
+      tokenService.clearTokens()
+      dismissAllToasts()
     }
+  }
+
+  const handleTokenExpiration = () => {
+    dismissAllToasts()
+    logout()
+    router.push('/login')
   }
 
   async function login(email: string, password: string) {
     try {
-      const { data } = await api.post<AuthResponse>('/auth/login', {
-        email,
-        password,
-        name: ''
-      })
-
-      const token = data.token
-      user.value = {
-        email: data.email,
-        name: data.name,
-        token: token,
-        isAdmin: data.isAdmin
-      }
-      isAuthenticated.value = true
-
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user.value))
-
-      // Set the token in axios headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-      startTokenExpirationCheck(token)
-      activityMonitor.startMonitoring(() => {
-        dismissAllToasts()
-        logout()
-        router.push('/login')
-      })
+      const response = await authService.login(email, password)
+      setupAuthenticatedSession(response)
     } catch (error) {
       throw new Error('Invalid credentials')
     }
@@ -116,66 +56,43 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(email: string, password: string, name: string) {
     try {
-      const { data } = await api.post<AuthResponse>('/auth/register', {
-        email,
-        password,
-        name
-      })
-
-      const token = data.token
-      user.value = {
-        email: data.email,
-        name: data.name,
-        token: token,
-        isAdmin: data.isAdmin
-      }
-      isAuthenticated.value = true
-
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user.value))
-
-      // Set the token in axios headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-      startTokenExpirationCheck(token)
-      activityMonitor.startMonitoring(() => {
-        dismissAllToasts()
-        logout()
-        router.push('/login')
-      })
+      const response = await authService.register(email, password, name)
+      setupAuthenticatedSession(response)
     } catch (error) {
       throw new Error('Registration failed')
     }
   }
 
+  function setupAuthenticatedSession(authResponse: AuthResponse) {
+    const { token, ...userData } = authResponse
+    user.value = { ...userData, token }
+    isAuthenticated.value = true
+
+    tokenService.saveToken(token)
+    tokenService.saveUser(user.value)
+    tokenService.startTokenCheck(() => handleTokenExpiration())
+    
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    activityMonitor.startMonitoring(() => handleTokenExpiration())
+
+    // Set up session close handler
+    sessionService.onClose(() => {
+      logout()
+      tokenService.clearTokens()
+    })
+  }
+
   function logout() {
     user.value = null
     isAuthenticated.value = false
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    
-    // Remove token from axios headers
+    tokenService.clearTokens()
     delete api.defaults.headers.common['Authorization']
-    
-    if (tokenCheckInterval.value) {
-      clearInterval(tokenCheckInterval.value)
-      tokenCheckInterval.value = null
-    }
-
     activityMonitor.stopMonitoring()
     dismissAllToasts()
   }
 
   // Initialize auth state when the store is created
   initializeAuth()
-
-  onBeforeUnmount(() => {
-    if (tokenCheckInterval.value) {
-      clearInterval(tokenCheckInterval.value)
-    }
-    activityMonitor.stopMonitoring()
-    dismissAllToasts()
-  })
 
   return {
     user,
