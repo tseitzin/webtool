@@ -11,6 +11,7 @@ import SearchArea from '../views/SearchArea.vue'
 import { useAuthStore } from '../stores/auth'
 import AccessDenied from '../views/AccessDenied.vue'
 import Dashboard from '../views/Dashboard.vue'
+import { storeToRefs } from 'pinia'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -79,18 +80,16 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+  const { isAuthenticated, user } = storeToRefs(authStore)
   
   // Initialize auth state if not already done
-  if (!authStore.isAuthenticated) {
+  if (!isAuthenticated.value) {
     authStore.initializeAuth()
   }
 
-  // Wait for a brief moment to allow auth state to be properly initialized
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     next('/login')
-  } else if (to.meta.requiresAdmin && !authStore.user?.isAdmin) {
+  } else if (to.meta.requiresAdmin && !user.value?.isAdmin) {
     next('/access-denied')
   } else {
     next()

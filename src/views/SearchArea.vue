@@ -49,12 +49,13 @@ onMounted(async () => {
     return
   }
   await fetchStockData()
+  await fetchMarketSummary()
   await fetchFavorites()
 })
 
 const fetchStockData = async () => {
   const client = restClient(APIKEY);
-  client.stocks.aggregates("AAPL", 1, "day", "2023-01-01", "2023-04-14").then((data) => {
+  client.stocks.aggregates("MAPS", 1, "day", "2024-12-06", "2024-12-06").then((data) => {
 	console.log(data);
   }).catch(e => {
     console.error("Error retrieving data: ", e)
@@ -62,20 +63,19 @@ const fetchStockData = async () => {
 }
 
 
-
-// const fetchMarketSummary = async () => {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const response = await api.get('/stockdata/summary')
-//     marketSummary.value = response.data
-//   } catch (e: any) {
-//     error.value = 'Failed to load market summary'
-//     console.error('Error:', e)
-//   } finally {
-//     loading.value = false
-//   }
-// }
+const fetchMarketSummary = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const response = await api.get('/stockdata/summary')
+    marketSummary.value = response.data
+  } catch (e: any) {
+    error.value = 'Failed to load market summary'
+    console.error('Error:', e)
+  } finally {
+    loading.value = false
+  }
+}
 
 const fetchFavorites = async () => {
   try {

@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import api from '../api/axios'
 import { AuthService } from '../services/authService'
 import { TokenService } from '../services/tokenService'
-import { SessionService } from '../services/sessionService'
 import { activityMonitor } from '../utils/activityMonitor'
 import { dismissAllToasts } from '../utils/toast'
 import type { User, AuthResponse } from '../types/auth'
@@ -15,9 +14,11 @@ export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const authService = new AuthService()
   const tokenService = new TokenService()
-  const sessionService = SessionService.getInstance()
+  let isInitialized = false
 
   const initializeAuth = () => {
+    if (isInitialized) return
+    
     const token = tokenService.getToken()
     const storedUser = tokenService.getStoredUser()
     
@@ -27,16 +28,12 @@ export const useAuthStore = defineStore('auth', () => {
       tokenService.startTokenCheck(() => handleTokenExpiration())
       activityMonitor.startMonitoring(() => handleTokenExpiration())
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      
-      // Set up session close handler
-      sessionService.onClose(() => {
-        logout()
-        tokenService.clearTokens()
-      })
     } else {
       tokenService.clearTokens()
       dismissAllToasts()
     }
+    
+    isInitialized = true
   }
 
   const handleTokenExpiration = () => {
@@ -74,12 +71,6 @@ export const useAuthStore = defineStore('auth', () => {
     
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`
     activityMonitor.startMonitoring(() => handleTokenExpiration())
-
-    // Set up session close handler
-    sessionService.onClose(() => {
-      logout()
-      tokenService.clearTokens()
-    })
   }
 
   function logout() {
@@ -90,9 +81,6 @@ export const useAuthStore = defineStore('auth', () => {
     activityMonitor.stopMonitoring()
     dismissAllToasts()
   }
-
-  // Initialize auth state when the store is created
-  initializeAuth()
 
   return {
     user,
