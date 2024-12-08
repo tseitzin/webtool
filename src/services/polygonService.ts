@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { PolygonStockSnapshot, StockData } from '../types/polygon'
+import type { MarketMovers, PolygonStockSnapshot, StockData } from '../types/polygon'
 import { secretsService } from './secretService'
 
 export class PolygonService {
@@ -38,6 +38,39 @@ export class PolygonService {
     } catch (error) {
       console.error('Error fetching stock data:', error)
       throw new Error('Failed to fetch stock data')
+    }
+  }
+
+  async getMarketMovers(): Promise<MarketMovers> {
+    try {
+      const apiKey = await this.getApiKey()
+      const [gainersResponse, losersResponse] = await Promise.all([
+        axios.get(`${this.baseUrl}/snapshot/locale/us/markets/stocks/gainers?apiKey=${apiKey}`),
+        axios.get(`${this.baseUrl}/snapshot/locale/us/markets/stocks/losers?apiKey=${apiKey}`)
+      ])
+
+      const gainers = gainersResponse.data.tickers
+        .slice(0, 10)
+        .map((ticker: any) => ({
+          symbol: ticker.ticker,
+          price: ticker.day.c,
+          changePercent: ticker.todaysChangePerc,
+          volume: ticker.day.v
+        }))
+
+      const losers = losersResponse.data.tickers
+        .slice(0, 10)
+        .map((ticker: any) => ({
+          symbol: ticker.ticker,
+          price: ticker.day.c,
+          changePercent: ticker.todaysChangePerc,
+          volume: ticker.day.v
+        }))
+
+      return { gainers, losers }
+    } catch (error) {
+      console.error('Error fetching market movers:', error)
+      throw new Error('Failed to fetch market movers')
     }
   }
 }

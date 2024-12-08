@@ -49,3 +49,15 @@ export interface PolygonStockSnapshot {
     low?: number
     previousClose: number
   }
+
+  export interface MarketMover {
+    symbol: string
+    price: number
+    changePercent: number
+    volume: number
+  }
+  
+  export interface MarketMovers {
+    gainers: MarketMover[]
+    losers: MarketMover[]
+  }

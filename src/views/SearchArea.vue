@@ -6,12 +6,13 @@ import { polygonService } from '../services/polygonService'
 import { stockService } from '../services/stockService'
 import StockSearchResult from '../components/StockSearchResult.vue'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
-import type { StockData } from '../types/polygon'
+import type { StockData, MarketMovers } from '../types/polygon'
 
 const router = useRouter()
 const auth = useAuthStore()
 const selectedStock = ref<StockData | null>(null)
 const savedStocks = ref<StockData[]>([])
+const marketMovers = ref<MarketMovers | null>(null)
 const error = ref('')
 const loading = ref(false)
 const searchSymbol = ref('')
@@ -22,6 +23,7 @@ onMounted(async () => {
     return
   }
   fetchSavedStocks()
+  fetchMarketMovers()
 })
 
 const searchStock = async () => {
@@ -45,6 +47,14 @@ const fetchSavedStocks = async () => {
     savedStocks.value = await stockService.getSavedStocks()
   } catch (e: any) {
     console.error('Error fetching saved stocks:', e)
+  }
+}
+
+const fetchMarketMovers = async () => {
+  try {
+    marketMovers.value = await polygonService.getMarketMovers()
+  } catch (e: any) {
+    console.error('Error fetching market movers:', e)
   }
 }
 
@@ -129,43 +139,111 @@ const isStockFavorited = (symbol: string) => {
       <!-- Saved Stocks Section -->
       <div v-if="savedStocks.length > 0" class="mt-8">
         <h2 class="text-2xl font-bold mb-4">Your Saved Stocks</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="space-y-3">
           <div
             v-for="stock in savedStocks"
             :key="stock.symbol"
-            class="bg-white rounded-lg shadow-md p-6"
+            class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow"
           >
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-bold">{{ stock.symbol }}</h3>
-              <button
-                @click="removeSavedStock(stock.symbol)"
-                class="text-red-600 hover:text-red-800"
-              >
-                Remove
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-500">Price</p>
-                <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
+            <div class="flex items-center space-x-6 flex-grow">
+              <div class="w-24">
+                <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
               </div>
-              <div>
+              <div class="w-32">
+                <p class="text-sm text-gray-500">Price</p>
+                <p class="font-semibold">{{ formatCurrency(stock.price) }}</p>
+              </div>
+              <div class="w-32">
                 <p class="text-sm text-gray-500">Change</p>
-                <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
+                <p :class="['font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
                   {{ formatPercent(stock.changePercent) }}
                 </p>
               </div>
-              <div>
+              <div class="w-32">
                 <p class="text-sm text-gray-500">Volume</p>
                 <p class="font-semibold">{{ formatNumber(stock.volume) }}</p>
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Previous Close</p>
+              <div class="w-32">
+                <p class="text-sm text-gray-500">Prev Close</p>
                 <p class="font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
               </div>
             </div>
+            <button
+              @click="removeSavedStock(stock.symbol)"
+              class="ml-4 text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
           </div>
         </div>
+      </div>
+
+      <!-- Market Movers Section -->
+      <div v-if="marketMovers" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Top Gainers -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-lg font-bold mb-2 text-green-600">Top 10 Gainers</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="text-left text-xs font-medium text-gray-500">
+              <th class="pb-1">Symbol</th>
+              <th class="pb-1">Price</th>
+              <th class="pb-1">Change</th>
+              <th class="pb-1">Volume</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr
+              v-for="stock in marketMovers.gainers"
+              :key="stock.symbol"
+              class="hover:bg-gray-50 text-sm"
+            >
+              <td class="py-1 font-medium">{{ stock.symbol }}</td>
+              <td class="py-1">{{ formatCurrency(stock.price) }}</td>
+              <td class="py-1 text-green-600 font-semibold">
+                {{ formatPercent(stock.changePercent) }}
+              </td>
+              <td class="py-1">{{ formatNumber(stock.volume) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+        <!-- Top Losers -->
+        <div class="bg-white rounded-lg shadow-md p-4">
+      <h2 class="text-lg font-bold mb-2 text-red-600">Top 10 Losers</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="text-left text-xs font-medium text-gray-500">
+              <th class="pb-1">Symbol</th>
+              <th class="pb-1">Price</th>
+              <th class="pb-1">Change</th>
+              <th class="pb-1">Volume</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr
+              v-for="stock in marketMovers.losers"
+              :key="stock.symbol"
+              class="hover:bg-gray-50 text-sm"
+            >
+              <td class="py-1 font-medium">{{ stock.symbol }}</td>
+              <td class="py-1">{{ formatCurrency(stock.price) }}</td>
+              <td class="py-1 text-red-600 font-semibold">
+                {{ formatPercent(stock.changePercent) }}
+              </td>
+              <td class="py-1">{{ formatNumber(stock.volume) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
       </div>
     </div>
   </div>
