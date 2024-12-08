@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { restClient } from '@polygon.io/client-js';
 import api from '../api/axios'
 import MarketSummaryCard from '../components/MarketSummaryCard.vue'
-import StockSearchResult from '../components/StockSearchResult.vue'
+// import StockSearchResult from '../components/StockSearchResult.vue'
 
 interface StockData {
   symbol: string
@@ -99,22 +99,22 @@ const fetchFavoriteStockData = async () => {
   }
 }
 
-const toggleFavorite = async (symbol: string) => {
-  try {
-    if (isStockFavorited(symbol)) {
-      await api.delete(`/favorites/${symbol}`)
-    } else {
-      await api.post(`/favorites/${symbol}`)
-    }
-    await fetchFavorites()
-  } catch (e: any) {
-    error.value = e.response?.data?.message || 'Failed to update favorites'
-  }
-}
+// const toggleFavorite = async (symbol: string) => {
+//   try {
+//     if (isStockFavorited(symbol)) {
+//       await api.delete(`/favorites/${symbol}`)
+//     } else {
+//       await api.post(`/favorites/${symbol}`)
+//     }
+//     await fetchFavorites()
+//   } catch (e: any) {
+//     error.value = e.response?.data?.message || 'Failed to update favorites'
+//   }
+// }
 
-const isStockFavorited = (symbol: string) => {
-  return favorites.value.some(f => f.symbol === symbol)
-}
+// const isStockFavorited = (symbol: string) => {
+//   return favorites.value.some(f => f.symbol === symbol)
+// }
 
 const searchStock = async () => {
   if (!searchSymbol.value) return
@@ -174,12 +174,12 @@ const searchStock = async () => {
         </div>
 
         <!-- Selected Stock Details -->
-        <StockSearchResult
+        <!-- <StockSearchResult
           v-if="selectedStock"
           :stock="selectedStock"
           :is-favorited="isStockFavorited(selectedStock.symbol)"
           @toggle-favorite="toggleFavorite"
-        />
+        /> -->
       </div>
 
       <!-- Market Summary -->
