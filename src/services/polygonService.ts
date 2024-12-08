@@ -2,8 +2,6 @@ import axios from 'axios'
 import type { PolygonStockSnapshot, StockData } from '../types/polygon'
 import { secretsService } from './secretService'
 
-//const POLYGON_API_KEY = 'RhKpsxpuUpC9QkFx_4nd_Gd8Fuezoqae'
-
 export class PolygonService {
   private readonly baseUrl = 'https://api.polygon.io/v2'
   private apiKey: string = ""
