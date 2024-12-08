@@ -28,4 +28,17 @@ public class SecretsController : ControllerBase
 
         return Ok(new { value = secret });
     }
+
+    [HttpGet("polygon-api-key")]
+    public async Task<IActionResult> GetPolygonApiKey()
+    {
+        var apiKey = await _keyVaultService.GetSecretAsync("PolygonApiKey");
+        
+        if (apiKey == null)
+        {
+            return NotFound("API key not found");
+        }
+
+        return Ok(new { value = apiKey });
+    }
 }

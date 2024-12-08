@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public required DbSet<StockData> StockData { get; set; }
     public required DbSet<UserFavoriteStock> UserFavoriteStocks { get; set; }
     public required DbSet<UserOwnedStock> UserOwnedStocks { get; set; }
+    public required DbSet<UserSavedStock> UserSavedStocks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -159,6 +160,38 @@ public class AppDbContext : DbContext
             entity.HasOne(o => o.User)
                   .WithMany()
                   .HasForeignKey(o => o.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserSavedStock>(entity =>
+        {
+            entity.ToTable("user_saved_stocks");
+
+            entity.HasIndex(s => new { s.UserId, s.Symbol }).IsUnique();
+
+            entity.Property(s => s.Symbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(s => s.Id).HasColumnName("id");
+            entity.Property(s => s.UserId).HasColumnName("user_id");
+            entity.Property(s => s.Symbol).HasColumnName("symbol");
+            entity.Property(s => s.Price).HasColumnName("price");
+            entity.Property(s => s.Change).HasColumnName("change");
+            entity.Property(s => s.ChangePercent).HasColumnName("change_percent");
+            entity.Property(s => s.Volume).HasColumnName("volume");
+            entity.Property(s => s.MarketCap).HasColumnName("market_cap");
+            entity.Property(s => s.SavedAt)
+                  .HasColumnName("saved_at")
+                  .HasColumnType("timestamp with time zone");
+            entity.Property(s => s.Open).HasColumnName("open");
+            entity.Property(s => s.High).HasColumnName("high");
+            entity.Property(s => s.Low).HasColumnName("low");
+            entity.Property(s => s.PreviousClose).HasColumnName("previous_close");
+
+            entity.HasOne(s => s.User)
+                  .WithMany()
+                  .HasForeignKey(s => s.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

@@ -8,7 +8,7 @@ defineProps<{
     change: number
     changePercent: number
     volume: number
-    marketCap: number
+    previousClose: number
   }
   isFavorited: boolean
 }>()
@@ -53,8 +53,8 @@ const emit = defineEmits<{
         <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
       </div>
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-sm text-gray-500">Market Cap</h3>
-        <p class="text-lg font-semibold">{{ formatCurrency(stock.marketCap) }}</p>
+        <h3 class="text-sm text-gray-500">Previous Close</h3>
+        <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose) }}</p>
       </div>
     </div>
   </div>
