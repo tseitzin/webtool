@@ -4,6 +4,7 @@ import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters
 defineProps<{
   stock: {
     symbol: string
+    companyName: string
     price: number
     change: number
     changePercent: number
@@ -20,7 +21,8 @@ const emit = defineEmits<{
 
 <template>
   <div class="mt-4">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-lg font-semibold">Company: {{ stock.companyName }}</h3>
       <h3 class="text-lg font-semibold">Stock Symbol: {{ stock.symbol }}</h3>
       <button
         v-if="!isFavorited"
@@ -34,7 +36,7 @@ const emit = defineEmits<{
         @click="emit('toggleFavorite', stock.symbol)"
         class="px-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
       >
-        Remove from Saved Stock
+        Remove Saved Stock
       </button>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">

@@ -2,6 +2,7 @@ namespace api.Models;
 
 public class SaveStockRequest
 {
+    public required string CompanyName { get; set; }
     public required decimal Price { get; set; }
     public required decimal Change { get; set; }
     public required decimal ChangePercent { get; set; }

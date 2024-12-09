@@ -35,9 +35,26 @@ export interface PolygonStockSnapshot {
     status: string
     request_id: string
   }
+
+  export interface PolygonCompanyInfo {
+    request_id: string
+    results: {
+      ticker: string
+      name: string
+      market: string
+      locale: string
+      primary_exchange: string
+      type: string
+      active: boolean
+      currency_name: string
+      market_cap: number
+    }
+    status: string
+  }
   
   export interface StockData {
     symbol: string
+    companyName: string
     price: number
     change: number
     changePercent: number

@@ -12,6 +12,10 @@ public class UserSavedStock
     [Required]
     [MaxLength(10)]
     public required string Symbol { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public required string CompanyName { get; set; }
     
     [Required]
     public decimal Price { get; set; }

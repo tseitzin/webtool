@@ -43,6 +43,7 @@ public class SavedStocksController : ControllerBase
         if (existing != null)
         {
             // Update existing saved stock
+            existing.CompanyName = request.CompanyName;
             existing.Price = request.Price;
             existing.Change = request.Change;
             existing.ChangePercent = request.ChangePercent;
@@ -61,6 +62,7 @@ public class SavedStocksController : ControllerBase
             {
                 UserId = userId,
                 Symbol = symbol.ToUpper(),
+                CompanyName = request.CompanyName,
                 Price = request.Price,
                 Change = request.Change,
                 ChangePercent = request.ChangePercent,

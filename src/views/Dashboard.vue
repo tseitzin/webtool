@@ -3,7 +3,7 @@ import { ref, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { stockService } from '../services/stockService'
-import { polygonService } from '../services/polygonService'
+//import { polygonService } from '../services/polygonService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { StockData } from '../types/polygon'
 

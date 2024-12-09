@@ -1,9 +1,9 @@
 import axios from 'axios'
-import type { MarketMovers, PolygonStockSnapshot, StockData } from '../types/polygon'
+import type { MarketMovers, PolygonCompanyInfo, PolygonStockSnapshot, StockData } from '../types/polygon'
 import { secretsService } from './secretService'
 
 export class PolygonService {
-  private readonly baseUrl = 'https://api.polygon.io/v2'
+  private readonly baseUrl = 'https://api.polygon.io'
   private apiKey: string = ""
 
   private async getApiKey(): Promise<string> {
@@ -16,14 +16,21 @@ export class PolygonService {
   async getStockSnapshot(symbol: string): Promise<StockData> {
     try {
       const apiKey = await this.getApiKey()
-      const response = await axios.get<PolygonStockSnapshot>(
-        `${this.baseUrl}/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${apiKey}`
-      )
+      const [snapshotResponse, companyResponse] = await Promise.all([
+        axios.get<PolygonStockSnapshot>(
+          `${this.baseUrl}/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${apiKey}`
+        ),
+        axios.get<PolygonCompanyInfo>(
+          `${this.baseUrl}/v3/reference/tickers/${symbol}?apiKey=${apiKey}`
+        )
+      ])
 
-      const { ticker } = response.data
+      const { ticker } = snapshotResponse.data
+      const { results: company } = companyResponse.data
       
       return {
         symbol: ticker.ticker,
+        companyName: company.name,
         price: ticker.day.c,
         change: ticker.todaysChange,
         changePercent: ticker.todaysChangePerc,
@@ -45,8 +52,8 @@ export class PolygonService {
     try {
       const apiKey = await this.getApiKey()
       const [gainersResponse, losersResponse] = await Promise.all([
-        axios.get(`${this.baseUrl}/snapshot/locale/us/markets/stocks/gainers?apiKey=${apiKey}`),
-        axios.get(`${this.baseUrl}/snapshot/locale/us/markets/stocks/losers?apiKey=${apiKey}`)
+        axios.get(`${this.baseUrl}/v2/snapshot/locale/us/markets/stocks/gainers?apiKey=${apiKey}`),
+        axios.get(`${this.baseUrl}/v2/snapshot/locale/us/markets/stocks/losers?apiKey=${apiKey}`)
       ])
 
       const gainers = gainersResponse.data.tickers
@@ -74,5 +81,6 @@ export class PolygonService {
     }
   }
 }
+
 
 export const polygonService = new PolygonService()
