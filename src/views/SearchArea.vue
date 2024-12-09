@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { polygonService } from '../services/polygonService'
 import { stockService } from '../services/stockService'
-import StockSearchResult from '../components/StockSearchResult.vue'
+import { searchAreaService } from '../services/searchAreaService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
+import StockSearchResult from '../components/StockSearchResult.vue'
 import type { StockData, MarketMovers } from '../types/polygon'
 
 const router = useRouter()
 const auth = useAuthStore()
-const selectedStock = ref<StockData | null>(null)
 const savedStocks = ref<StockData[]>([])
+const selectedStock = ref<StockData | null>(null)
 const marketMovers = ref<MarketMovers | null>(null)
 const error = ref('')
 const loading = ref(false)
@@ -22,67 +23,70 @@ onMounted(async () => {
     router.push('/access-denied')
     return
   }
-  fetchSavedStocks()
-  fetchMarketMovers()
+  await fetchInitialData()
 })
+
+// Cleanup on component unmount
+watchEffect((onCleanup) => {
+  onCleanup(() => {
+    searchAreaService.stopAutoRefresh()
+  })
+})
+
+const fetchInitialData = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const stocks = await stockService.getSavedStocks()
+    savedStocks.value = stocks
+    
+    // Start auto-refresh after initial fetch
+    searchAreaService.startAutoRefresh(stocks, (updatedStocks, updatedMovers) => {
+      savedStocks.value = updatedStocks
+      marketMovers.value = updatedMovers
+    })
+  } catch (e: any) {
+    error.value = 'Failed to load stock data'
+    console.error('Error:', e)
+  } finally {
+    loading.value = false
+  }
+}
 
 const searchStock = async () => {
   if (!searchSymbol.value) return
   
   loading.value = true
   error.value = ''
+  const currentStock = searchSymbol.value.toUpperCase()
   try {
-    const stockData = await polygonService.getStockSnapshot(searchSymbol.value.toUpperCase())
-    selectedStock.value = stockData
+    const stock = await polygonService.getStockSnapshot(currentStock)
+    selectedStock.value = stock
   } catch (e: any) {
-    error.value = 'Stock not found or error fetching data'
+    error.value = currentStock + ' is currently unavailable and cannot be used in your analysis. The information on this page reflects the last day MSP Recovery was actively traded.'
     selectedStock.value = null
   } finally {
     loading.value = false
   }
 }
 
-const fetchSavedStocks = async () => {
+const toggleSavedStock = async (symbol: string) => {
   try {
-    savedStocks.value = await stockService.getSavedStocks()
-  } catch (e: any) {
-    console.error('Error fetching saved stocks:', e)
-  }
-}
-
-const fetchMarketMovers = async () => {
-  try {
-    marketMovers.value = await polygonService.getMarketMovers()
-  } catch (e: any) {
-    console.error('Error fetching market movers:', e)
-  }
-}
-
-const toggleFavorite = async (symbol: string) => {
-  if (!selectedStock.value) return
-
-  try {
-    if (isStockFavorited(symbol)) {
+    const isCurrentlySaved = savedStocks.value.some(s => s.symbol === symbol)
+    
+    if (isCurrentlySaved) {
       await stockService.removeSavedStock(symbol)
-    } else {
+      savedStocks.value = savedStocks.value.filter(s => s.symbol !== symbol)
+    } else if (selectedStock.value) {
       await stockService.saveStock(selectedStock.value)
+      savedStocks.value = [...savedStocks.value, selectedStock.value]
     }
-    await fetchSavedStocks()
   } catch (e: any) {
-    error.value = e.response?.data?.message || 'Failed to update saved stocks'
+    error.value = 'Failed to update saved stocks'
   }
 }
 
-const removeSavedStock = async (symbol: string) => {
-  try {
-    await stockService.removeSavedStock(symbol)
-    await fetchSavedStocks()
-  } catch (e: any) {
-    error.value = 'Failed to remove from saved stocks'
-  }
-}
-
-const isStockFavorited = (symbol: string) => {
+const isStockSaved = (symbol: string): boolean => {
   return savedStocks.value.some(s => s.symbol === symbol)
 }
 </script>
@@ -131,8 +135,8 @@ const isStockFavorited = (symbol: string) => {
         <StockSearchResult
           v-if="selectedStock"
           :stock="selectedStock"
-          :is-favorited="isStockFavorited(selectedStock.symbol)"
-          @toggle-favorite="toggleFavorite"
+          :is-favorited="isStockSaved(selectedStock.symbol)"
+          @toggle-favorite="toggleSavedStock"
         />
       </div>
 
@@ -169,7 +173,7 @@ const isStockFavorited = (symbol: string) => {
               </div>
             </div>
             <button
-                @click="removeSavedStock(stock.symbol)"
+                @click="toggleSavedStock(stock.symbol)"
                 class="text-red-600 hover:text-red-800 transition-colors"
               >
                 Remove
