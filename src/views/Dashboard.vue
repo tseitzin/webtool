@@ -3,7 +3,7 @@ import { ref, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { stockService } from '../services/stockService'
-//import { polygonService } from '../services/polygonService'
+import { dashboardService } from '../services/dashboardService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { StockData } from '../types/polygon'
 
@@ -12,7 +12,6 @@ const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const error = ref('')
 const loading = ref(false)
-const refreshInterval = ref<number | null>(null)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -20,27 +19,12 @@ onMounted(async () => {
     return
   }
   await fetchSavedStocks()
-  startAutoRefresh()
 })
-
-// Auto-refresh data every 60 seconds
-const startAutoRefresh = () => {
-  refreshInterval.value = window.setInterval(() => {
-    fetchSavedStocks()
-  }, 60000)
-}
-
-const stopAutoRefresh = () => {
-  if (refreshInterval.value) {
-    clearInterval(refreshInterval.value)
-    refreshInterval.value = null
-  }
-}
 
 // Cleanup on component unmount
 watchEffect((onCleanup) => {
   onCleanup(() => {
-    stopAutoRefresh()
+    dashboardService.stopAutoRefresh()
   })
 })
 
@@ -50,6 +34,11 @@ const fetchSavedStocks = async () => {
   try {
     const stocks = await stockService.getSavedStocks()
     savedStocks.value = stocks
+    
+    // Start auto-refresh after initial fetch
+    dashboardService.startAutoRefresh(stocks, (updatedStocks) => {
+      savedStocks.value = updatedStocks
+    })
   } catch (e: any) {
     error.value = 'Failed to load saved stocks'
     console.error('Error:', e)
