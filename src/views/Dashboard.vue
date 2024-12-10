@@ -59,6 +59,10 @@ const removeSavedStock = async (symbol: string) => {
 const navigateToSearch = () => {
   router.push('/search-area')
 }
+
+const formatChange = (change: number, changePercent: number): string => {
+  return `${formatCurrency(change)} (${formatPercent(changePercent)})`
+}
 </script>
 
 <template>
@@ -127,7 +131,7 @@ const navigateToSearch = () => {
               <div>
                 <p class="text-sm text-gray-500">Change</p>
                 <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                  {{ formatPercent(stock.changePercent) }}
+                  {{ formatChange(stock.change, stock.changePercent) }}
                 </p>
               </div>
               <div>

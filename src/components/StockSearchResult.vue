@@ -17,6 +17,10 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'toggleFavorite', symbol: string): void
 }>()
+
+const formatChange = (change: number, changePercent: number): string => {
+  return `${formatCurrency(change)} (${formatPercent(changePercent)})`
+}
 </script>
 
 <template>
@@ -47,7 +51,7 @@ const emit = defineEmits<{
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-sm text-gray-500">Change</h3>
         <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-          {{ formatCurrency(stock.change) }} ({{ formatPercent(stock.changePercent) }})
+          {{ formatChange(stock.change, stock.changePercent) }}
         </p>
       </div>
       <div class="bg-gray-50 p-4 rounded-lg">

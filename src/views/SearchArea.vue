@@ -70,6 +70,12 @@ const searchStock = async () => {
   }
 }
 
+const clearSearch = () => {
+  searchSymbol.value = ''
+  selectedStock.value = null
+  error.value = ''
+}
+
 const toggleSavedStock = async (symbol: string) => {
   try {
     const isCurrentlySaved = savedStocks.value.some(s => s.symbol === symbol)
@@ -88,6 +94,10 @@ const toggleSavedStock = async (symbol: string) => {
 
 const isStockSaved = (symbol: string): boolean => {
   return savedStocks.value.some(s => s.symbol === symbol)
+}
+
+const formatChange = (change: number, changePercent: number): string => {
+  return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
 </script>
 
@@ -114,20 +124,32 @@ const isStockSaved = (symbol: string): boolean => {
 
       <!-- Stock Search -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <input
-            v-model="searchSymbol"
-            type="text"
-            placeholder="Enter stock symbol..."
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            @keyup.enter="searchStock"
-          />
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+          <div class="relative w-full sm:w-48">
+            <input
+              v-model="searchSymbol"
+              type="text"
+              placeholder="Enter symbol"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase"
+              maxlength="10"
+              @keyup.enter="searchStock"
+            />
+            <button
+              v-if="searchSymbol"
+              @click="clearSearch"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              title="Clear search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
           <button
             @click="searchStock"
-            :disabled="loading"
-            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            {{ loading ? 'Searching...' : 'Search' }}
+            Search
           </button>
         </div>
 
@@ -149,7 +171,7 @@ const isStockSaved = (symbol: string): boolean => {
             :key="stock.symbol"
             class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow"
           >
-            <div class="flex items-center space-x-6 flex-grow">
+            <div class="flex items-center space-x-9 flex-grow">
               <div class="w-24">
                 <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
               </div>
@@ -157,13 +179,13 @@ const isStockSaved = (symbol: string): boolean => {
                 <p class="text-sm text-gray-500">Price</p>
                 <p class="font-semibold">{{ formatCurrency(stock.price) }}</p>
               </div>
-              <div class="w-32">
+              <div class="w-40">
                 <p class="text-sm text-gray-500">Change</p>
                 <p :class="['font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                  {{ formatPercent(stock.changePercent) }}
+                  {{ formatChange(stock.change, stock.changePercent) }}
                 </p>
               </div>
-              <div class="w-32">
+              <div class="w-40">
                 <p class="text-sm text-gray-500">Volume</p>
                 <p class="font-semibold">{{ formatNumber(stock.volume) }}</p>
               </div>
