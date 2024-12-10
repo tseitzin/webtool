@@ -63,7 +63,7 @@ const searchStock = async () => {
     const stock = await polygonService.getStockSnapshot(currentStock)
     selectedStock.value = stock
   } catch (e: any) {
-    error.value = currentStock + ' is currently unavailable and cannot be used in your analysis. The information on this page reflects the last day MSP Recovery was actively traded.'
+    error.value = currentStock + ' is not a valid symbol or is currently unavailable and cannot be used in your analysis.'
     selectedStock.value = null
   } finally {
     loading.value = false
