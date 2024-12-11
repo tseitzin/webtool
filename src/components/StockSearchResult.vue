@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import router from '../router';
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 
 defineProps<{
@@ -21,6 +22,10 @@ const emit = defineEmits<{
 const formatChange = (change: number, changePercent: number): string => {
   return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
+
+const navigateToResearch = (symbol: string) => {
+  router.push(`/research/${symbol}`)
+}
 </script>
 
 <template>
@@ -28,6 +33,7 @@ const formatChange = (change: number, changePercent: number): string => {
     <div class="flex justify-between items-center mb-3">
       <h3 class="text-lg font-semibold">Company: {{ stock.companyName }}</h3>
       <h3 class="text-lg font-semibold">Stock Symbol: {{ stock.symbol }}</h3>
+      
       <button
         v-if="!isFavorited"
         @click="emit('toggleFavorite', stock.symbol)"
@@ -42,6 +48,7 @@ const formatChange = (change: number, changePercent: number): string => {
       >
         Remove Saved Stock
       </button>
+      
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-gray-50 p-4 rounded-lg">
@@ -62,6 +69,15 @@ const formatChange = (change: number, changePercent: number): string => {
         <h3 class="text-sm text-gray-500">Previous Close</h3>
         <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose) }}</p>
       </div>
+    </div>
+    <div class="flex justify-between items-center mb-3">
+      <button
+        @click="navigateToResearch(stock.symbol)"
+        class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        title="Research Stock"
+      >
+        Research Stock
+      </button>
     </div>
   </div>
 </template>

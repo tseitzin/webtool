@@ -99,6 +99,10 @@ const isStockSaved = (symbol: string): boolean => {
 const formatChange = (change: number, changePercent: number): string => {
   return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
+
+const navigateToResearch = (symbol: string) => {
+  router.push(`/research/${symbol}`)
+}
 </script>
 
 <template>
@@ -169,13 +173,18 @@ const formatChange = (change: number, changePercent: number): string => {
           <div
             v-for="stock in savedStocks"
             :key="stock.symbol"
-            class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow"
+            class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4 flex items-center justify-between"
           >
             <div class="flex items-center space-x-9 flex-grow">
               <div class="w-24">
+                <p class="text-sm text-gray-500">Symbol</p>
                 <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
               </div>
-              <div class="w-32">
+              <div class="w-48">
+                <p class="text-sm text-gray-600">Company Name</p>
+                <h3 class="text-sm font-bold text-gray-800">{{ stock.companyName }}</h3>
+              </div>
+              <div class="w-24">
                 <p class="text-sm text-gray-500">Price</p>
                 <p class="font-semibold">{{ formatCurrency(stock.price) }}</p>
               </div>
@@ -185,7 +194,7 @@ const formatChange = (change: number, changePercent: number): string => {
                   {{ formatChange(stock.change, stock.changePercent) }}
                 </p>
               </div>
-              <div class="w-40">
+              <div class="w-32">
                 <p class="text-sm text-gray-500">Volume</p>
                 <p class="font-semibold">{{ formatNumber(stock.volume) }}</p>
               </div>
@@ -193,15 +202,25 @@ const formatChange = (change: number, changePercent: number): string => {
                 <p class="text-sm text-gray-500">Prev Close</p>
                 <p class="font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
               </div>
+              <div class="w-32">
+                <button
+                  @click="navigateToResearch(stock.symbol)"
+                  class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  title="Research Stock"
+                >
+                  Research Stock
+                </button>
+              </div>
             </div>
             <button
                 @click="toggleSavedStock(stock.symbol)"
-                class="text-red-600 hover:text-red-800 transition-colors"
+                class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 Remove
               </button>
           </div>
         </div>
+        
       </div>
 
       <!-- Market Movers Section -->
@@ -267,8 +286,7 @@ const formatChange = (change: number, changePercent: number): string => {
         </table>
       </div>
     </div>
-
-      </div>
-    </div>
   </div>
+</div>
+</div>
 </template>

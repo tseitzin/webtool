@@ -1,10 +1,19 @@
 import axios from 'axios'
-import type { MarketMovers, PolygonCompanyInfo, PolygonStockSnapshot, StockData } from '../types/polygon'
 import { secretsService } from './secretService'
+import type { 
+  PolygonStockSnapshot, 
+  PolygonCompanyInfo, 
+  StockData, 
+  MarketMovers,
+  CompanyDetailsResponse,
+  CompanyDetails, 
+  NewsResponse,
+  NewsArticle
+} from '../types/polygon'
 
 export class PolygonService {
   private readonly baseUrl = 'https://api.polygon.io'
-  private apiKey: string = ""
+  private apiKey: string | null = null
 
   private async getApiKey(): Promise<string> {
     if (!this.apiKey) {
@@ -33,9 +42,9 @@ export class PolygonService {
         companyName: company.name,
         price: ticker.day.c,
         change: ticker.todaysChange,
+        marketCap: 0, // Not provided in snapshot
         changePercent: ticker.todaysChangePerc,
         volume: ticker.day.v,
-        marketCap: 0, // Not provided in snapshot
         timestamp: new Date(ticker.updated / 1000000).toISOString(),
         open: ticker.day.o,
         high: ticker.day.h,
@@ -45,6 +54,22 @@ export class PolygonService {
     } catch (error) {
       console.error('Error fetching stock data:', error)
       throw new Error('Failed to fetch stock data')
+    }
+  }
+
+  async getCompanyDetails(symbol: string): Promise<CompanyDetails> {
+    try {
+      const apiKey = await this.getApiKey()
+      const today = new Date().toISOString().split('T')[0]
+      
+      const response = await axios.get<CompanyDetailsResponse>(
+        `${this.baseUrl}/v3/reference/tickers/${symbol}?date=${today}&apiKey=${apiKey}`
+      )
+
+      return response.data.results
+    } catch (error) {
+      console.error('Error fetching company details:', error)
+      throw new Error('Failed to fetch company details')
     }
   }
 
@@ -78,6 +103,25 @@ export class PolygonService {
     } catch (error) {
       console.error('Error fetching market movers:', error)
       throw new Error('Failed to fetch market movers')
+    }
+  }
+
+  async getCompanyNews(symbol: string): Promise<NewsArticle[]> {
+    try {
+      const apiKey = await this.getApiKey()
+      const today = new Date()
+      const thirtyDaysAgo = new Date(today.setDate(today.getDate() - 30))
+        .toISOString()
+        .split('T')[0]
+      
+      const response = await axios.get<NewsResponse>(
+        `${this.baseUrl}/v2/reference/news?ticker=${symbol}&published_utc.gt=${thirtyDaysAgo}&order=desc&limit=10&sort=published_utc&apiKey=${apiKey}`
+      )
+  
+      return response.data.results
+    } catch (error) {
+      console.error('Error fetching company news:', error)
+      throw new Error('Failed to fetch company news')
     }
   }
 }
