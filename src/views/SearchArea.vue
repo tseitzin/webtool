@@ -7,6 +7,7 @@ import { stockService } from '../services/stockService'
 import { searchAreaService } from '../services/searchAreaService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import StockSearchResult from '../components/StockSearchResult.vue'
+import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 import type { StockData, MarketMovers } from '../types/polygon'
 
 const router = useRouter()
@@ -17,6 +18,7 @@ const marketMovers = ref<MarketMovers | null>(null)
 const error = ref('')
 const loading = ref(false)
 const searchSymbol = ref('')
+const isIntroExpanded = ref(true)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -103,12 +105,50 @@ const formatChange = (change: number, changePercent: number): string => {
 const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
+
+const toggleIntro = () => {
+  isIntroExpanded.value = !isIntroExpanded.value
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold mb-8">Stock Search Area</h1>
+    <div class="container mx-auto px-4 py-4">
+
+      <!-- Introduction Section -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <CollapsibleSectionHeader
+          title="Stock Search & Tracking"
+          :is-expanded="isIntroExpanded"
+          @toggle="toggleIntro"
+        />
+        <div
+          v-show="isIntroExpanded"
+          class="transition-all duration-300 ease-in-out"
+        >
+          <div class="p-6 pt-2">
+            <div class="prose max-w-none text-gray-600">
+              <p class="mb-1">
+                Welcome to the Stock Search area! Here you can search for stocks, view their details, and save them to your watchlist.
+              </p>
+              <div class="bg-blue-50 p-4 rounded-lg">
+                <h2 class="text-lg font-semibold text-blue-900 mb-1">How to Use:</h2>
+                <ul class="list-disc list-inside space-y-2 text-blue-800">
+                  <li>Enter a stock symbol (e.g., AAPL, MSFT) in the search box</li>
+                  <li>Click "Search" or press Enter to view stock details</li>
+                  <li>Use the "Add to Favorites" button to save stocks you want to track</li>
+                  <li>Click the Research Stock button on any saved stock to view detailed company information and news</li>
+                </ul>
+              </div>
+              <div class="mt-4 p-4 bg-yellow-50 rounded-lg">
+                <p class="text-yellow-800">
+                  <span class="font-semibold">Pro Tip:</span> Your saved stocks are automatically updated to help you stay informed about market movements.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Error Message -->
       <div 

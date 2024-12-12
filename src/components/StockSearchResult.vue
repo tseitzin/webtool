@@ -39,7 +39,7 @@ const navigateToResearch = (symbol: string) => {
         @click="emit('toggleFavorite', stock.symbol)"
         class="px-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
       >
-        Add to Saved Stock
+        Add to Saved Stocks
       </button>
       <button
         v-else

@@ -6,12 +6,14 @@ import { stockService } from '../services/stockService'
 import { dashboardService } from '../services/dashboardService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { StockData } from '../types/polygon'
+import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const error = ref('')
 const loading = ref(false)
+const isWelcomeExpanded = ref(true)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -63,14 +65,60 @@ const navigateToSearch = () => {
 const formatChange = (change: number, changePercent: number): string => {
   return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
+
+const navigateToResearch = (symbol: string) => {
+  router.push(`/research/${symbol}`)
+}
+
+const toggleWelcome = () => {
+  isWelcomeExpanded.value = !isWelcomeExpanded.value
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-100">
     <div class="container mx-auto px-4 py-4">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold">{{ auth.user?.name }}'s Dashboard</h1>
+
+      <!-- Welcome Section -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <CollapsibleSectionHeader
+          :title="`Welcome back, ${auth.user?.name}!`"
+          :is-expanded="isWelcomeExpanded"
+          @toggle="toggleWelcome"
+        />
+
+        <!-- Collapsible Content -->
+        <div
+          v-show="isWelcomeExpanded"
+          class="transition-all duration-300 ease-in-out"
+        >
+          <div class="p-6 pt-1">
+            <div class="prose max-w-none text-gray-600">
+              <p class="mb-1">
+                This is your personalized dashboard where you can monitor your portfolio and track your favorite stocks in real-time.
+              </p>
+              <div class="bg-blue-50 p-1 rounded-lg">
+                <h2 class="text-lg font-semibold text-blue-900 mb-2">Quick Guide:</h2>
+                <ul class="list-disc list-inside space-y-2 text-blue-800">
+                  <li>View your saved stocks and their current performance</li>
+                  <li>Click the Company Details button on any stock to see detailed analysis and news</li>
+                  <li>Track price changes and volume in real-time</li>
+                  <li>
+                    Need to add more stocks? 
+                    <button 
+                      @click="navigateToSearch"
+                      class="text-indigo-600 hover:text-indigo-800 font-medium"
+                    >
+                      Visit the Stock Search page
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
 
       <!-- Error Message -->
       <div v-if="error" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -123,7 +171,7 @@ const formatChange = (change: number, changePercent: number): string => {
               </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1">
               <div>
                 <p class="text-sm text-gray-500">Current Price</p>
                 <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
@@ -144,7 +192,7 @@ const formatChange = (change: number, changePercent: number): string => {
               </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 text-sm text-gray-600">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1 text-sm text-gray-600">
               <div>
                 <span class="text-gray-500">Open:</span>
                 <span class="ml-1">{{ stock.open ? formatCurrency(stock.open) : 'N/A' }}</span>
@@ -157,6 +205,15 @@ const formatChange = (change: number, changePercent: number): string => {
                 <span class="text-gray-500">Low:</span>
                 <span class="ml-1">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</span>
               </div>
+            </div>
+            <div class="mt-4">
+              <button
+                @click="navigateToResearch(stock.symbol)"
+                class="px-2 py-2 bg-green-400 text-sm font-bold text-black rounded-lg hover:bg-green-600 transition-colors"
+                title="Research Stock"
+              >
+                Company Details
+              </button>
             </div>
           </div>
         </div>
