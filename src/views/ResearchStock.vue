@@ -134,12 +134,7 @@ const navigateToSearch = () => {
         <div class="bg-white rounded-lg shadow-md p-6">
           <h2 class="text-xl font-semibold mb-2">About {{ companyDetails.name }}</h2>
           <p class="text-gray-700 leading-relaxed">{{ companyDetails.description }}</p>
-        </div>
-
-        <!-- Contact Information -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-2">Contact Information</h2>
-          <div class="space-y-4">
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
             <div>
               <p class="text-md text-gray-500">Headquarters</p>
               <p class="text-gray-700 text-sm">{{ companyDetails.address.address1 }}</p>
@@ -168,8 +163,8 @@ const navigateToSearch = () => {
 
         <!-- Company News Section -->
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-6">Latest News</h2>
-          <div v-if="newsArticles.length" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 class="text-xl font-semibold mb-6">Related news for {{ companyDetails.ticker }}({{ companyDetails.name }}) over the last 30 days</h2>
+          <div v-if="newsArticles.length" class="space-y-4"> <!-- Changed to vertical stack -->
             <NewsArticleCard
               v-for="article in newsArticles"
               :key="article.id"

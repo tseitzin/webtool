@@ -7,13 +7,16 @@ import { dashboardService } from '../services/dashboardService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { StockData } from '../types/polygon'
 import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
+import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 
 const router = useRouter()
 const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const error = ref('')
 const loading = ref(false)
-const isWelcomeExpanded = ref(true)
+
+const { isExpanded: isWelcomeExpanded, toggleSection: toggleWelcome } = 
+  useCollapsibleSection('dashboard_welcome')
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -70,9 +73,6 @@ const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
 
-const toggleWelcome = () => {
-  isWelcomeExpanded.value = !isWelcomeExpanded.value
-}
 </script>
 
 <template>
@@ -80,42 +80,29 @@ const toggleWelcome = () => {
     <div class="container mx-auto px-4 py-4">
 
       <!-- Welcome Section -->
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+      <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden mb-8">
         <CollapsibleSectionHeader
           :title="`Welcome back, ${auth.user?.name}!`"
           :is-expanded="isWelcomeExpanded"
           @toggle="toggleWelcome"
         />
-
-        <!-- Collapsible Content -->
+        
         <div
           v-show="isWelcomeExpanded"
-          class="transition-all duration-300 ease-in-out"
+          class="ml-4 mr-4 mb-4 p-6 transition-all duration-300 ease-in-out bg-indigo-100 rounded-xl"
         >
-          <div class="p-6 pt-1">
-            <div class="prose max-w-none text-gray-600">
-              <p class="mb-1">
-                This is your personalized dashboard where you can monitor your portfolio and track your favorite stocks in real-time.
-              </p>
-              <div class="bg-blue-50 p-1 rounded-lg">
-                <h2 class="text-lg font-semibold text-blue-900 mb-2">Quick Guide:</h2>
-                <ul class="list-disc list-inside space-y-2 text-blue-800">
-                  <li>View your saved stocks and their current performance</li>
-                  <li>Click the Company Details button on any stock to see detailed analysis and news</li>
-                  <li>Track price changes and volume in real-time</li>
-                  <li>
-                    Need to add more stocks? 
-                    <button 
-                      @click="navigateToSearch"
-                      class="text-indigo-600 hover:text-indigo-800 font-medium"
-                    >
-                      Visit the Stock Search page
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <p class="mb-4 font-bold">
+          This is your personalized dashboard where you can monitor your portfolio and track your favorite stocks in real-time.
+          </p>
+          <p class="mb-4">
+            Here you can:
+          </p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>View your saved stocks and their current performance</li>
+            <li>Track your stock portfolio and monitor changes</li>
+            <li>Get quick access to detailed stock information</li>
+            <li>Monitor market trends and stock movements</li>
+          </ul>
         </div>
       </div>
 
