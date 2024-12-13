@@ -1,4 +1,4 @@
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 
 export function useCollapsibleSection(sectionId: string, defaultExpanded = true) {
   const isExpanded = ref(defaultExpanded)
