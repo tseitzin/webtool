@@ -48,6 +48,14 @@ const closeMenu = () => {
             Stock Search
           </router-link>
           <router-link 
+            v-if="auth.isAuthenticated"
+            to="/crypto" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Crypto Search
+          </router-link>
+          <router-link 
             v-if="auth.isAuthenticated && auth.user?.isAdmin"
             to="/users" 
             class="navbar_link"

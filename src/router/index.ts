@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/crypto',
+      name: 'crypto',
+      component: () => import('../views/CryptoSearch.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/research/:symbol',
       name: 'research-stock',
       component: ResearchStock,

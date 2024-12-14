@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coinbase/coinbase-sdk": "^0.11.3",
     "@polygon.io/client-js": "^7.3.2",
     "@types/node": "^22.10.1",
     "@vueuse/core": "^10.7.2",
