@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { NewsArticle } from '../types/polygon'
 
 defineProps<{
@@ -24,18 +25,37 @@ const getSentimentColor = (sentiment: string): string => {
       return 'bg-gray-100 text-gray-800'
   }
 }
+
+const imageError = ref(false)
+
+const handleImageError = () => {
+  imageError.value = true
+}
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex gap-4 border border-solid border-indigo-600">
+  <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex gap-4">
     <!-- Publisher Logo -->
     <div class="flex-shrink-0">
-      <img 
-        v-if="article.publisher.favicon_url"
-        :src="article.publisher.favicon_url" 
-        :alt="article.publisher.name"
-        class="w-6 h-6 rounded-full"
-      />
+      <div 
+        v-if="!imageError && article.publisher.favicon_url"
+        class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden"
+      >
+        <img 
+          :src="article.publisher.favicon_url" 
+          :alt="article.publisher.name"
+          @error="handleImageError"
+          class="w-full h-full object-contain"
+        />
+      </div>
+      <div 
+        v-else
+        class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
+      >
+        <span class="text-xs font-semibold text-gray-600">
+          {{ article.publisher.name.charAt(0) }}
+        </span>
+      </div>
     </div>
 
     <!-- Article Content -->
