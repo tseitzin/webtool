@@ -185,7 +185,7 @@ const navigateToResearch = (symbol: string) => {
           </div>
           <button
             @click="searchStock"
-            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Search
           </button>
@@ -248,7 +248,7 @@ const navigateToResearch = (symbol: string) => {
             </div>
             <button
                 @click="toggleSavedStock(stock.symbol)"
-                class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Remove
               </button>

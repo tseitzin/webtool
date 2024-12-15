@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public required DbSet<UserFavoriteStock> UserFavoriteStocks { get; set; }
     public required DbSet<UserOwnedStock> UserOwnedStocks { get; set; }
     public required DbSet<UserSavedStock> UserSavedStocks { get; set; }
+    public required DbSet<UserSavedCrypto> UserSavedCryptos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -194,5 +195,35 @@ public class AppDbContext : DbContext
                   .HasForeignKey(s => s.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<UserSavedCrypto>(entity =>
+    {
+        entity.ToTable("user_saved_cryptos");
+
+        entity.HasIndex(c => new { c.UserId, c.Symbol }).IsUnique();
+
+        entity.Property(c => c.Symbol)
+              .HasMaxLength(10)
+              .IsRequired();
+
+        entity.Property(c => c.Id).HasColumnName("id");
+        entity.Property(c => c.UserId).HasColumnName("user_id");
+        entity.Property(c => c.Symbol).HasColumnName("symbol");
+        entity.Property(c => c.Open).HasColumnName("open");
+        entity.Property(c => c.Price).HasColumnName("price");
+        entity.Property(c => c.Change).HasColumnName("change");
+        entity.Property(c => c.ChangePercent).HasColumnName("change_percent");
+        entity.Property(c => c.Volume).HasColumnName("volume");
+        entity.Property(c => c.High24h).HasColumnName("high_24h");
+        entity.Property(c => c.Low24h).HasColumnName("low_24h");
+        entity.Property(c => c.SavedAt)
+              .HasColumnName("saved_at")
+              .HasColumnType("timestamp with time zone");
+
+        entity.HasOne(c => c.User)
+              .WithMany()
+              .HasForeignKey(c => c.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
+    });
     }
 }

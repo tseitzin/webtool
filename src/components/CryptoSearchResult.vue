@@ -17,11 +17,9 @@ const formatChange = (change: number, changePercent: number): string => {
 </script>
 
 <template>
-  <div class="mt-4">
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <h3 class="text-lg font-semibold">{{ crypto.symbol }}/USD</h3>
-      </div>
+  <div class="mt-6">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-lg font-semibold">Crypto Symbol: {{ crypto.symbol }}</h3>
       <button
         v-if="!isSaved"
         @click="emit('toggleSave', crypto.symbol)"
@@ -32,22 +30,19 @@ const formatChange = (change: number, changePercent: number): string => {
       <button
         v-else
         @click="emit('toggleSave', crypto.symbol)"
-        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        class="px-2 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
       >
         Remove from Watchlist
       </button>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-sm text-gray-500">Current Price</h3>
+        <h3 class="text-sm text-gray-500">Price</h3>
         <p class="text-lg font-semibold">{{ formatCurrency(Number(crypto.price)) }}</p>
       </div>
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-sm text-gray-500">Today's Open</h3>
-        <p class="text-lg font-semibold">{{ formatCurrency(Number(crypto.open)) }}</p>
-      </div>
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-sm text-gray-500">Today's Change</h3>
+        <h3 class="text-sm text-gray-500">24h Change</h3>
         <p :class="['text-lg font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
           {{ formatChange(crypto.change, crypto.changePercent) }}
         </p>
@@ -63,5 +58,6 @@ const formatChange = (change: number, changePercent: number): string => {
         </p>
       </div>
     </div>
+
   </div>
 </template>

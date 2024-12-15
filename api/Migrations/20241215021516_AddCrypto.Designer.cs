@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using api.Data;
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241215021516_AddCrypto")]
+    partial class AddCrypto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -289,10 +292,6 @@ namespace api.Migrations
                     b.Property<decimal>("Low24h")
                         .HasColumnType("numeric")
                         .HasColumnName("low_24h");
-
-                    b.Property<decimal>("Open")
-                        .HasColumnType("numeric")
-                        .HasColumnName("open");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric")

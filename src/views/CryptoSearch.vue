@@ -7,6 +7,8 @@ import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 import CryptoSearchResult from '../components/CryptoSearchResult.vue'
 import type { CryptoData } from '../types/crypto'
+import { cryptoService } from '../services/cryptoService'
+import { formatCurrency, formatNumber, formatPercent } from '../utils/formatters'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -19,11 +21,20 @@ const searchSymbol = ref('')
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
   useCollapsibleSection('crypto_intro')
 
-onMounted(() => {
+onMounted(async () => {
   if (!auth.isAuthenticated) {
     router.push('/access-denied')
   }
+  await fetchSavedCryptos()
 })
+
+const fetchSavedCryptos = async () => {
+  try {
+    savedCryptos.value = await cryptoService.getSavedCryptos()
+  } catch (e) {
+    console.error('Failed to fetch saved cryptos:', e)
+  }
+}
 
 const searchCrypto = async () => {
   if (!searchSymbol.value) return
@@ -48,17 +59,28 @@ const clearSearch = () => {
 }
 
 const toggleSavedCrypto = async (symbol: string) => {
-  const isCurrentlySaved = savedCryptos.value.some(c => c.symbol === symbol)
-  
-  if (isCurrentlySaved) {
-    savedCryptos.value = savedCryptos.value.filter(c => c.symbol !== symbol)
-  } else if (selectedCrypto.value) {
-    savedCryptos.value = [...savedCryptos.value, selectedCrypto.value]
+  try {
+    const isCurrentlySaved = savedCryptos.value.some(c => c.symbol === symbol)
+    
+    if (isCurrentlySaved) {
+      await cryptoService.removeSavedCrypto(symbol)
+      savedCryptos.value = savedCryptos.value.filter(c => c.symbol !== symbol)
+    } else if (selectedCrypto.value) {
+      await cryptoService.saveCrypto(selectedCrypto.value)
+      savedCryptos.value = [...savedCryptos.value, selectedCrypto.value]
+    }
+  } catch (e) {
+    console.error('Failed to toggle saved crypto:', e)
+    error.value = 'Failed to update watchlist'
   }
 }
 
 const isCryptoSaved = (symbol: string): boolean => {
   return savedCryptos.value.some(c => c.symbol === symbol)
+}
+
+const formatChange = (change: number, changePercent: number): string => {
+  return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
 </script>
 
@@ -75,12 +97,15 @@ const isCryptoSaved = (symbol: string): boolean => {
         
         <div
           v-show="isIntroExpanded"
-          class="p-6 transition-all duration-300 ease-in-out"
+          class="ml-4 mr-4 mb-4 p-6 transition-all duration-300 ease-in-out bg-indigo-100 rounded-xl"
         >
-          <p class="text-gray-600 mb-4">
+          <p class="mb-4 font-bold">
+            This is where you can search for details on any cryptocurrencies traded in the US markets.
+          </p>
+          <p class="mb-4">
             Use this area to search for and track your favorite cryptocurrencies:
           </p>
-          <ul class="list-disc list-inside text-gray-600 space-y-2 ml-4">
+          <ul class="list-disc list-inside space-y-2 ml-4">
             <li>Enter a cryptocurrency symbol (e.g., BTC, ETH) to view current market data</li>
             <li>Save cryptocurrencies to your watchlist for quick access</li>
             <li>Monitor price changes and market trends</li>
@@ -92,11 +117,11 @@ const isCryptoSaved = (symbol: string): boolean => {
       <!-- Search Section -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
+          <div class="relative w-full sm:w-48">
             <input
               v-model="searchSymbol"
               type="text"
-              placeholder="Enter crypto symbol (e.g., BTC)..."
+              placeholder="Enter crypto symbol"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               @keyup.enter="searchCrypto"
             />
@@ -113,7 +138,7 @@ const isCryptoSaved = (symbol: string): boolean => {
           </div>
           <button
             @click="searchCrypto"
-            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            class="px-6 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Search
           </button>
@@ -145,16 +170,69 @@ const isCryptoSaved = (symbol: string): boolean => {
       </div>
 
       <!-- Saved Cryptocurrencies -->
-      <div v-if="savedCryptos.length > 0" class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-4">Your Watchlist</h2>
-        <div class="space-y-4">
-          <CryptoSearchResult
-            v-for="crypto in savedCryptos"
-            :key="crypto.symbol"
-            :crypto="crypto"
-            :is-saved="true"
-            @toggle-save="toggleSavedCrypto"
-          />
+      <div v-if="savedCryptos.length > 0" class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Your Crypto Watchlist</h2>
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 gap-4">
+            <div
+              v-for="crypto in savedCryptos"
+              :key="crypto.symbol"
+              :crypto="crypto"
+              :is-saved="true"
+              @toggle-save="toggleSavedCrypto"
+              class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4 flex justify-between"
+              >
+                <div class="flex items-center space-x-9 flex-grow">
+                <div class="w-24">
+                  <p class="text-sm text-gray-500">Symbol</p>
+                  <h3 class="text-lg font-bold">{{ crypto.symbol }}</h3>
+                </div>
+                <div class="w-24 text-center">
+                  <p class="text-sm text-gray-600">Current Price</p>
+                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.price)) }}</h3>
+                </div>
+                <div class="w-24 text-center">
+                  <p class="text-sm text-gray-600">Opening Price</p>
+                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.open)) }}</h3>
+                </div>
+                <div class="w-48 text-center">
+                  <p class="text-sm text-gray-500">Change Since Open</p>
+                  <p :class="['text-md font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
+                      {{ formatChange(crypto.change, crypto.changePercent) }}
+                  </p>
+                </div>
+                <div class="w-32 text-center">
+                  <p class="text-sm text-gray-500">24 Hour Volume</p>
+                  <h3 class="text-md font-bold">{{ formatNumber(crypto.volume) }}</h3>
+                </div>
+                <div class="w-60 text-center">
+                  <h3 class="text-sm text-gray-500">24h High/Low</h3>
+                  <p class="text-md font-semibold">
+                    {{ formatCurrency(crypto.high24h) }} / {{ formatCurrency(crypto.low24h) }}
+                  </p>
+                </div>
+                <div class="w-12">
+                  <button
+                    @click="toggleSavedCrypto(crypto.symbol)"
+                    class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Research
+                  </button>
+                </div>
+                <div class="w-12">
+                  <button
+                    @click="toggleSavedCrypto(crypto.symbol)"
+                    class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+                
+
+
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
