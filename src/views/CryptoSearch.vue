@@ -235,6 +235,8 @@ const formatChange = (change: number, changePercent: number): string => {
           </div>
         </div>
       </div>
+
+      
     </div>
   </div>
 </template>

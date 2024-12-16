@@ -8,10 +8,14 @@ import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters
 import type { StockData } from '../types/polygon'
 import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
+import { CryptoData } from '../types/crypto'
+import { cryptoService } from '../services/cryptoService'
 
 const router = useRouter()
 const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
+const savedCryptos = ref<CryptoData[]>([])
+const selectedCrypto = ref<CryptoData | null>(null)
 const error = ref('')
 const loading = ref(false)
 
@@ -24,6 +28,7 @@ onMounted(async () => {
     return
   }
   await fetchSavedStocks()
+  await fetchSavedCryptos()
 })
 
 // Cleanup on component unmount
@@ -73,6 +78,30 @@ const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
 
+const toggleSavedCrypto = async (symbol: string) => {
+  try {
+    const isCurrentlySaved = savedCryptos.value.some(c => c.symbol === symbol)
+    
+    if (isCurrentlySaved) {
+      await cryptoService.removeSavedCrypto(symbol)
+      savedCryptos.value = savedCryptos.value.filter(c => c.symbol !== symbol)
+    } else if (selectedCrypto.value) {
+      await cryptoService.saveCrypto(selectedCrypto.value)
+      savedCryptos.value = [...savedCryptos.value, selectedCrypto.value]
+    }
+  } catch (e) {
+    console.error('Failed to toggle saved crypto:', e)
+    error.value = 'Failed to update watchlist'
+  }
+}
+
+const fetchSavedCryptos = async () => {
+  try {
+    savedCryptos.value = await cryptoService.getSavedCryptos()
+  } catch (e) {
+    console.error('Failed to fetch saved cryptos:', e)
+  }
+}
 </script>
 
 <template>
@@ -204,6 +233,74 @@ const navigateToResearch = (symbol: string) => {
             </div>
           </div>
         </div>
+
+        <!-- Saved Cryptocurrencies -->
+      <div v-if="savedCryptos.length > 0" class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Your Saved Cryptocurrencies</h2>
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 gap-4">
+            <div
+              v-for="crypto in savedCryptos"
+              :key="crypto.symbol"
+              :crypto="crypto"
+              :is-saved="true"
+              @toggle-save="toggleSavedCrypto"
+              class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4 flex justify-between"
+              >
+                <div class="flex items-center space-x-9 flex-grow">
+                <div class="w-24">
+                  <p class="text-sm text-gray-500">Symbol</p>
+                  <h3 class="text-lg font-bold">{{ crypto.symbol }}</h3>
+                </div>
+                <div class="w-24 text-center">
+                  <p class="text-sm text-gray-600">Current Price</p>
+                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.price)) }}</h3>
+                </div>
+                <div class="w-24 text-center">
+                  <p class="text-sm text-gray-600">Opening Price</p>
+                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.open)) }}</h3>
+                </div>
+                <div class="w-48 text-center">
+                  <p class="text-sm text-gray-500">Change Since Open</p>
+                  <p :class="['text-md font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
+                      {{ formatChange(crypto.change, crypto.changePercent) }}
+                  </p>
+                </div>
+                <div class="w-32 text-center">
+                  <p class="text-sm text-gray-500">24 Hour Volume</p>
+                  <h3 class="text-md font-bold">{{ formatNumber(crypto.volume) }}</h3>
+                </div>
+                <div class="w-60 text-center">
+                  <h3 class="text-sm text-gray-500">24h High/Low</h3>
+                  <p class="text-md font-semibold">
+                    {{ formatCurrency(crypto.high24h) }} / {{ formatCurrency(crypto.low24h) }}
+                  </p>
+                </div>
+                <div class="w-12">
+                  <button
+                    @click="toggleSavedCrypto(crypto.symbol)"
+                    class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Research
+                  </button>
+                </div>
+                <div class="w-12">
+                  <button
+                    @click="toggleSavedCrypto(crypto.symbol)"
+                    class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+                
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       </div>
     </div>
   </div>
