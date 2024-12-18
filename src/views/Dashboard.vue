@@ -16,7 +16,7 @@ const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const savedCryptos = ref<CryptoData[]>([])
 const selectedCrypto = ref<CryptoData | null>(null)
-const error = ref('')
+const errorStock = ref('')
 const loading = ref(false)
 
 const { isExpanded: isWelcomeExpanded, toggleSection: toggleWelcome } = 
@@ -40,7 +40,7 @@ watchEffect((onCleanup) => {
 
 const fetchSavedStocks = async () => {
   loading.value = true
-  error.value = ''
+  errorStock.value = ''
   try {
     const stocks = await stockService.getSavedStocks()
     savedStocks.value = stocks
@@ -50,7 +50,7 @@ const fetchSavedStocks = async () => {
       savedStocks.value = updatedStocks
     })
   } catch (e: any) {
-    error.value = 'Failed to load saved stocks'
+    errorStock.value = 'Failed to load saved stocks'
     console.error('Error:', e)
   } finally {
     loading.value = false
@@ -62,12 +62,16 @@ const removeSavedStock = async (symbol: string) => {
     await stockService.removeSavedStock(symbol)
     savedStocks.value = savedStocks.value.filter(stock => stock.symbol !== symbol)
   } catch (e: any) {
-    error.value = 'Failed to remove stock from saved list'
+    errorStock.value = 'Failed to remove stock from saved list'
   }
 }
 
 const navigateToSearch = () => {
   router.push('/search-area')
+}
+
+const navigateToCryptoSearch = () => {
+  router.push('/crypto')
 }
 
 const formatChange = (change: number, changePercent: number): string => {
@@ -91,7 +95,7 @@ const toggleSavedCrypto = async (symbol: string) => {
     }
   } catch (e) {
     console.error('Failed to toggle saved crypto:', e)
-    error.value = 'Failed to update watchlist'
+    errorStock.value = 'Failed to update watchlist'
   }
 }
 
@@ -109,7 +113,7 @@ const fetchSavedCryptos = async () => {
     <div class="container mx-auto px-4 py-4">
 
       <!-- Welcome Section -->
-      <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden mb-8">
+      <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden mb-10">
         <CollapsibleSectionHeader
           :title="`Welcome back, ${auth.user?.name}!`"
           :is-expanded="isWelcomeExpanded"
@@ -121,15 +125,15 @@ const fetchSavedCryptos = async () => {
           class="ml-4 mr-4 mb-4 p-6 transition-all duration-300 ease-in-out bg-indigo-100 rounded-xl"
         >
           <p class="mb-4 font-bold">
-          This is your personalized dashboard where you can monitor your portfolio and track your favorite stocks in real-time.
+          This is your personalized dashboard where you can monitor your portfolio and track your favorite stocks and cryptocurrenices in real-time.
           </p>
           <p class="mb-4">
             Here you can:
           </p>
           <ul class="list-disc list-inside space-y-2 ml-4">
-            <li>View your saved stocks and their current performance</li>
-            <li>Track your stock portfolio and monitor changes</li>
-            <li>Get quick access to detailed stock information</li>
+            <li>View your saved stocks and crypto to see their current performance</li>
+            <li>Track your total portfolio of stocks and crypto and monitor changes</li>
+            <li>Get quick access to detailed stock and crypto information</li>
             <li>Monitor market trends and stock movements</li>
           </ul>
         </div>
@@ -137,8 +141,8 @@ const fetchSavedCryptos = async () => {
 
 
       <!-- Error Message -->
-      <div v-if="error" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        {{ error }}
+      <div v-if="errorStock" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        {{ errorStock }}
       </div>
 
       <!-- Loading State -->
@@ -147,16 +151,7 @@ const fetchSavedCryptos = async () => {
       </div>
 
       <!-- Saved Stocks Section -->
-      <div class="mb-8">
-        <div class="flex flex-row justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Your Saved Stocks</h2>
-          <button
-            @click="navigateToSearch"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Search Stocks
-          </button>
-        </div>
+      <div class="mb-8">       
 
         <!-- No Saved Stocks Message -->
         <div v-if="savedStocks.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
@@ -172,13 +167,22 @@ const fetchSavedCryptos = async () => {
 
         <!-- Saved Stocks List -->
         <div v-else class="space-y-4">
+          <div class="flex flex-row justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Your Stocks Watchlist</h2>
+          <button
+            @click="navigateToSearch"
+            class="px-4 py-2 bg-indigo-600 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Search Stocks
+          </button>
+        </div>
           <div
             v-for="stock in savedStocks"
             :key="stock.symbol"
             class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
           >
             <div class="flex justify-between items-center">
-              <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
+              <h3 class="text-lg font-bold">{{ stock.symbol }} - {{ stock.companyName }}</h3>
               <button
                 @click="removeSavedStock(stock.symbol)"
                 class="text-red-600 hover:text-red-800 transition-colors"
@@ -187,7 +191,7 @@ const fetchSavedCryptos = async () => {
               </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 ml-4 mt-1">
               <div>
                 <p class="text-sm text-gray-500">Current Price</p>
                 <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
@@ -208,7 +212,7 @@ const fetchSavedCryptos = async () => {
               </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1 text-sm text-gray-600">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1 ml-4 text-sm text-gray-600">
               <div>
                 <span class="text-gray-500">Open:</span>
                 <span class="ml-1">{{ stock.open ? formatCurrency(stock.open) : 'N/A' }}</span>
@@ -234,9 +238,29 @@ const fetchSavedCryptos = async () => {
           </div>
         </div>
 
+        <!-- No Saved Crypto Message -->
+        <div v-if="savedCryptos.length === 0" class="mt-6 bg-white rounded-lg shadow-md p-8 text-center">
+          <h3 class="text-xl font-semibold mb-4">No Saved Crypto Yet</h3>
+          <p class="text-gray-600 mb-6">Start building your watchlist by adding crypto you want to track.</p>
+          <button
+            @click="navigateToCryptoSearch"
+            class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            Search and Add Crypto
+          </button>
+        </div>
+
         <!-- Saved Cryptocurrencies -->
-      <div v-if="savedCryptos.length > 0" class="mt-8">
-        <h2 class="text-2xl font-bold mb-4">Your Saved Cryptocurrencies</h2>
+      <div v-else class="mt-12">
+        <div class="flex flex-row justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Your Cryptocurrency Watchlist</h2>
+          <button
+            @click="navigateToSearch"
+            class="px-4 py-2 bg-orange-600 text-sm text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            Search Crypto
+          </button>
+        </div>
         <div class="space-y-3">
           <div class="grid grid-cols-1 gap-4">
             <div
@@ -245,57 +269,57 @@ const fetchSavedCryptos = async () => {
               :crypto="crypto"
               :is-saved="true"
               @toggle-save="toggleSavedCrypto"
-              class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4 flex justify-between"
+              class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
               >
-                <div class="flex items-center space-x-9 flex-grow">
-                <div class="w-24">
-                  <p class="text-sm text-gray-500">Symbol</p>
+                <div class="flex justify-between items-center">
                   <h3 class="text-lg font-bold">{{ crypto.symbol }}</h3>
-                </div>
-                <div class="w-24 text-center">
-                  <p class="text-sm text-gray-600">Current Price</p>
-                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.price)) }}</h3>
-                </div>
-                <div class="w-24 text-center">
-                  <p class="text-sm text-gray-600">Opening Price</p>
-                  <h3 class="font-semibold">{{ formatCurrency(Number(crypto.open)) }}</h3>
-                </div>
-                <div class="w-48 text-center">
-                  <p class="text-sm text-gray-500">Change Since Open</p>
-                  <p :class="['text-md font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                      {{ formatChange(crypto.change, crypto.changePercent) }}
-                  </p>
-                </div>
-                <div class="w-32 text-center">
-                  <p class="text-sm text-gray-500">24 Hour Volume</p>
-                  <h3 class="text-md font-bold">{{ formatNumber(crypto.volume) }}</h3>
-                </div>
-                <div class="w-60 text-center">
-                  <h3 class="text-sm text-gray-500">24h High/Low</h3>
-                  <p class="text-md font-semibold">
-                    {{ formatCurrency(crypto.high24h) }} / {{ formatCurrency(crypto.low24h) }}
-                  </p>
-                </div>
-                <div class="w-12">
                   <button
                     @click="toggleSavedCrypto(crypto.symbol)"
-                    class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    Research
-                  </button>
-                </div>
-                <div class="w-12">
-                  <button
-                    @click="toggleSavedCrypto(crypto.symbol)"
-                    class="px-2 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-red-700 transition-colors"
+                    class="text-red-600 hover:text-red-800 transition-colors"
                   >
                     Remove
                   </button>
                 </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 ml-4 mt-1">
                 
+                  <div class="w-24">
+                    <p class="text-sm text-gray-600">Current Price</p>
+                    <h3 class="text-lg font-semibold">{{ formatCurrency(Number(crypto.price)) }}</h3>
+                  </div>
+                  <div class="w-48">
+                    <p class="text-sm text-gray-500">Change</p>
+                    <p :class="['text-lg font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
+                        {{ formatChange(crypto.change, crypto.changePercent) }}
+                    </p>
+                  </div>
+                  <div class="w-32">
+                    <p class="text-sm text-gray-500">Volume</p>
+                    <h3 class="text-lg font-semibold">{{ formatNumber(crypto.volume) }}</h3>
+                  </div>
+                  
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-1 ml-4 text-sm text-gray-600">
+                  <div>
+                    <span class="text-gray-500">Open:</span>
+                    <span class="ml-1">{{ formatCurrency(Number(crypto.open)) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">High:</span>
+                    <span class="ml-1">{{ crypto.high24h ? formatCurrency(Number(crypto.high24h)) : 'N/A' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Low:</span>
+                    <span class="ml-1">{{ crypto.low24h ? formatCurrency(Number(crypto.low24h)) : 'N/A' }}</span>
+                  </div>
+                </div>
 
 
-              </div>
+
+
+
+
             </div>
           </div>
         </div>
