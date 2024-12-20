@@ -89,7 +89,10 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPassword
     }
-  ]
+  ],
+  scrollBehavior(){
+    return { top: 0, behavior: 'smooth'}
+  }
 })
 
 router.beforeEach(async (to, _from, next) => {

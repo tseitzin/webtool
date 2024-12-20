@@ -255,7 +255,7 @@ const fetchSavedCryptos = async () => {
         <div class="flex flex-row justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Your Cryptocurrency Watchlist</h2>
           <button
-            @click="navigateToSearch"
+            @click="navigateToCryptoSearch"
             class="px-4 py-2 bg-orange-600 text-sm text-white rounded-lg hover:bg-orange-700 transition-colors"
           >
             Search Crypto
@@ -288,7 +288,7 @@ const fetchSavedCryptos = async () => {
                     <h3 class="text-lg font-semibold">{{ formatCurrency(Number(crypto.price)) }}</h3>
                   </div>
                   <div class="w-48">
-                    <p class="text-sm text-gray-500">Change</p>
+                    <p class="text-sm text-gray-500">24 Hour Change</p>
                     <p :class="['text-lg font-semibold', crypto.change >= 0 ? 'text-green-600' : 'text-red-600']">
                         {{ formatChange(crypto.change, crypto.changePercent) }}
                     </p>
@@ -302,15 +302,15 @@ const fetchSavedCryptos = async () => {
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-1 ml-4 text-sm text-gray-600">
                   <div>
-                    <span class="text-gray-500">Open:</span>
+                    <span class="text-gray-500">Today's Opening:</span>
                     <span class="ml-1">{{ formatCurrency(Number(crypto.open)) }}</span>
                   </div>
                   <div>
-                    <span class="text-gray-500">High:</span>
+                    <span class="text-gray-500">24 Hour High:</span>
                     <span class="ml-1">{{ crypto.high24h ? formatCurrency(Number(crypto.high24h)) : 'N/A' }}</span>
                   </div>
                   <div>
-                    <span class="text-gray-500">Low:</span>
+                    <span class="text-gray-500">24 Hour Low:</span>
                     <span class="ml-1">{{ crypto.low24h ? formatCurrency(Number(crypto.low24h)) : 'N/A' }}</span>
                   </div>
                 </div>

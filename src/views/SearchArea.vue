@@ -257,6 +257,15 @@ const navigateToResearch = (symbol: string) => {
         
       </div>
 
+       <!-- Loading State -->
+       <div 
+        v-if="loading" 
+        class="flex justify-center items-center py-8"
+      >
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+
+
       <!-- Market Movers Section -->
       <div v-if="marketMovers" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Top Gainers -->

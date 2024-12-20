@@ -213,7 +213,7 @@ const formatChange = (change: number, changePercent: number): string => {
                 </div>
                 <div class="w-12">
                   <button
-                    @click="toggleSavedCrypto(crypto.symbol)"
+                    @click=""
                     class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
                     Research
