@@ -11,6 +11,7 @@ defineProps<{
     changePercent: number
     volume: number
     previousClose: number
+    marketStatus: string
   }
   isFavorited: boolean
 }>()
@@ -69,6 +70,9 @@ const navigateToResearch = (symbol: string) => {
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-sm text-gray-500">Previous Close</h3>
         <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose) }}</p>
+      </div>
+      <div v-if="stock.marketStatus.includes('closed')" class="col-span-full bg-yellow-50 p-4 rounded-lg">
+        <p class="text-sm text-yellow-700">{{ stock.marketStatus }}</p>
       </div>
     </div>
     <div class="flex justify-between items-center mb-3">

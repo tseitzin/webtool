@@ -7,6 +7,7 @@ import './style.css'
 import App from './App.vue'
 import NewsArticleCard from './components/NewsArticleCard.vue'
 import CryptoSearchResult from './components/CryptoSearchResult.vue'
+import MarketStatusMessage from './components/MarketStatusMessage.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -31,4 +32,5 @@ app.use(router)
 app.use(Toast, toastOptions)
 app.component('NewsArticleCard', NewsArticleCard);
 app.component('CryptoSearchResult', CryptoSearchResult);
+app.component('MarketStatusMessage', MarketStatusMessage);
 app.mount('#app')

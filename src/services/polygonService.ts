@@ -36,11 +36,16 @@ export class PolygonService {
 
       const { ticker } = snapshotResponse.data
       const { results: company } = companyResponse.data
+
+      // Check if market is closed (price and volume are 0)
+      const isMarketClosed = ticker.day.c === 0 && ticker.day.v === 0
+      const currentPrice = isMarketClosed ? ticker.prevDay.c : ticker.day.c
+      const marketStatus = isMarketClosed ? 'Market is currently closed. Using previous close price for current price.' : 'Market is open'
       
       return {
         symbol: ticker.ticker,
         companyName: company.name,
-        price: ticker.day.c,
+        price: currentPrice,
         change: ticker.todaysChange,
         marketCap: 0, // Not provided in snapshot
         changePercent: ticker.todaysChangePerc,
@@ -49,7 +54,8 @@ export class PolygonService {
         open: ticker.day.o,
         high: ticker.day.h,
         low: ticker.day.l,
-        previousClose: ticker.prevDay.c
+        previousClose: ticker.prevDay.c,
+        marketStatus
       }
     } catch (error) {
       console.error('Error fetching stock data:', error)

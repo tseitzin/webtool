@@ -65,6 +65,7 @@ export interface PolygonStockSnapshot {
     high?: number
     low?: number
     previousClose: number
+    marketStatus: string
   }
 
   export interface MarketMover {

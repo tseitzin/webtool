@@ -203,6 +203,10 @@ const navigateToResearch = (symbol: string) => {
       <!-- Saved Stocks Section -->
       <div v-if="savedStocks.length > 0" class="mt-8">
         <h2 class="text-2xl font-bold mb-4">Your Saved Stocks</h2>
+        <MarketStatusMessage 
+        v-if="savedStocks[0]?.marketStatus"
+             :market-status="savedStocks[0].marketStatus" 
+        />
         <div class="space-y-3">
           <div
             v-for="stock in savedStocks"
@@ -242,8 +246,8 @@ const navigateToResearch = (symbol: string) => {
                   class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   title="Research Stock"
                 >
-                  Research Stock
-                </button>
+                    Research Stock
+                  </button>
               </div>
             </div>
             <button

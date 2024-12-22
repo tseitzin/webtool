@@ -176,6 +176,10 @@ const fetchSavedCryptos = async () => {
             Search Stocks
           </button>
         </div>
+          <MarketStatusMessage 
+            v-if="savedStocks[0]?.marketStatus"
+            :market-status="savedStocks[0].marketStatus" 
+          />
           <div
             v-for="stock in savedStocks"
             :key="stock.symbol"
