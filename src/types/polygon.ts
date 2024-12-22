@@ -73,11 +73,15 @@ export interface PolygonStockSnapshot {
     price: number
     changePercent: number
     volume: number
+    lastUpdate: any
+    marketStatus?: string
   }
   
   export interface MarketMovers {
     gainers: MarketMover[]
     losers: MarketMover[]
+    marketStatus?: string
+    lastUpdate: Date
   }
 
   export interface CompanyAddress {

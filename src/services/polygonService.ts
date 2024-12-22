@@ -87,25 +87,26 @@ export class PolygonService {
         axios.get(`${this.baseUrl}/v2/snapshot/locale/us/markets/stocks/losers?apiKey=${apiKey}`)
       ])
 
-      const gainers = gainersResponse.data.tickers
-        .slice(0, 10)
-        .map((ticker: any) => ({
-          symbol: ticker.ticker,
-          price: ticker.day.c,
-          changePercent: ticker.todaysChangePerc,
-          volume: ticker.day.v
-        }))
+      // Check if market is closed (all stocks have 0 volume)
+      const isMarketClosed = gainersResponse.data.tickers.every((ticker: any) => ticker.day.v === 0)
+      const marketStatus = isMarketClosed ? 'Market is currently closed. Showing previous trading day data.' : ''
 
-      const losers = losersResponse.data.tickers
-        .slice(0, 10)
-        .map((ticker: any) => ({
-          symbol: ticker.ticker,
-          price: ticker.day.c,
-          changePercent: ticker.todaysChangePerc,
-          volume: ticker.day.v
-        }))
+      const processStocks = (tickers: any[]) => {
+        return tickers
+          .slice(0, 10)
+          .map((ticker: any) => ({
+            symbol: ticker.ticker,
+            price: isMarketClosed ? ticker.prevDay.c : ticker.day.c,
+            changePercent: isMarketClosed ? 0 : ticker.todaysChangePerc,
+            volume: isMarketClosed ? 0 : ticker.day.v,
+            marketStatus
+          }))
+      }
 
-      return { gainers, losers }
+      const gainers = processStocks(gainersResponse.data.tickers)
+      const losers = processStocks(losersResponse.data.tickers)
+
+      return { gainers, losers, marketStatus }
     } catch (error) {
       console.error('Error fetching market movers:', error)
       throw new Error('Failed to fetch market movers')

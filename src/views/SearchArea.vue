@@ -277,68 +277,78 @@ const navigateToResearch = (symbol: string) => {
 
       <!-- Market Movers Section -->
       <div v-if="marketMovers" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Market Status Message -->
+        <MarketStatusMessage 
+          v-if="marketMovers.marketStatus"
+          :market-status="marketMovers.marketStatus"
+          class="col-span-full"
+        />
+        <!-- Last Update Time -->
+          <div v-if="marketMovers.lastUpdate" class="col-span-full text-sm text-gray-600 mb-2">
+            Last updated: {{ new Date(marketMovers.lastUpdate).toLocaleString() }}
+          </div>
         <!-- Top Gainers -->
         <div class="bg-white rounded-lg shadow-md p-6">
-      <h2 class="text-lg font-bold mb-2 text-green-600">Top 10 Gainers</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full">
-          <thead>
-            <tr class="text-left text-xs font-medium text-gray-500">
-              <th class="pb-1">Symbol</th>
-              <th class="pb-1">Price</th>
-              <th class="pb-1">Change</th>
-              <th class="pb-1">Volume</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="stock in marketMovers.gainers"
-              :key="stock.symbol"
-              class="hover:bg-gray-50 text-sm"
-            >
-              <td class="py-1 font-medium">{{ stock.symbol }}</td>
-              <td class="py-1">{{ formatCurrency(stock.price) }}</td>
-              <td class="py-1 text-green-600 font-semibold">
-                {{ formatPercent(stock.changePercent) }}
-              </td>
-              <td class="py-1">{{ formatNumber(stock.volume) }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <h2 class="text-lg font-bold mb-2 text-green-600">Top 10 Gainers</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="text-left text-xs font-medium text-gray-500">
+                  <th class="pb-1">Symbol</th>
+                  <th class="pb-1">Price</th>
+                  <th class="pb-1">Change</th>
+                  <th class="pb-1">Volume</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr
+                  v-for="stock in marketMovers.gainers"
+                  :key="stock.symbol"
+                  class="hover:bg-gray-50 text-sm"
+                >
+                  <td class="py-1 font-medium">{{ stock.symbol }}</td>
+                  <td class="py-1">{{ formatCurrency(stock.price) }}</td>
+                  <td class="py-1 text-green-600 font-semibold">
+                    {{ formatPercent(stock.changePercent) }}
+                  </td>
+                  <td class="py-1">{{ formatNumber(stock.volume) }}</td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
       </div>
-    </div>
 
         <!-- Top Losers -->
         <div class="bg-white rounded-lg shadow-md p-4">
-      <h2 class="text-lg font-bold mb-2 text-red-600">Top 10 Losers</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full">
-          <thead>
-            <tr class="text-left text-xs font-medium text-gray-500">
-              <th class="pb-1">Symbol</th>
-              <th class="pb-1">Price</th>
-              <th class="pb-1">Change</th>
-              <th class="pb-1">Volume</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="stock in marketMovers.losers"
-              :key="stock.symbol"
-              class="hover:bg-gray-50 text-sm"
-            >
-              <td class="py-1 font-medium">{{ stock.symbol }}</td>
-              <td class="py-1">{{ formatCurrency(stock.price) }}</td>
-              <td class="py-1 text-red-600 font-semibold">
-                {{ formatPercent(stock.changePercent) }}
-              </td>
-              <td class="py-1">{{ formatNumber(stock.volume) }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <h2 class="text-lg font-bold mb-2 text-red-600">Top 10 Losers</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="text-left text-xs font-medium text-gray-500">
+                  <th class="pb-1">Symbol</th>
+                  <th class="pb-1">Price</th>
+                  <th class="pb-1">Change</th>
+                  <th class="pb-1">Volume</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr
+                  v-for="stock in marketMovers.losers"
+                  :key="stock.symbol"
+                  class="hover:bg-gray-50 text-sm"
+                >
+                  <td class="py-1 font-medium">{{ stock.symbol }}</td>
+                  <td class="py-1">{{ formatCurrency(stock.price) }}</td>
+                  <td class="py-1 text-red-600 font-semibold">
+                    {{ formatPercent(stock.changePercent) }}
+                  </td>
+                  <td class="py-1">{{ formatNumber(stock.volume) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
 </template>
