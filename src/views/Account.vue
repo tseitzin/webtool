@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import api from '../api/axios'
 import router from '../router';
+import DeleteAccountModal from '../components/DeleteAccountModal.vue'
 
 const auth = useAuthStore()
 const currentPassword = ref('')
@@ -16,6 +17,7 @@ const error = ref('')
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+const showDeleteModal = ref(false)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -70,12 +72,32 @@ const updateEmail = async () => {
     successMessage.value = ''
   }
 }
+
+const openDeleteModal = () => {
+  showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+}
+
+const handleDeleteAccount = async () => {
+  try {
+    await api.delete('/users/self')
+    auth.logout()
+    router.push('/')
+  } catch (e: any) {
+    error.value = e.response?.data?.message || 'Failed to delete account'
+  }
+  closeDeleteModal()
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-    <p class="text-2xl font-bold text-center mb-4">Welcome {{ auth.user?.name }}</p>
-    <p class="text-lg mb-4 text-center">This is the Account Area. Here you can change your password or your email.</p>
+    <p class="text-2xl font-bold text-center mb-2">Welcome {{ auth.user?.name }}</p>
+    <p class="text-center">This is the Account Area. </p>
+    <p class="mb-4 text-center">Here you can change your password, your email or delete your account.</p>
     <div class="max-w-3xl mx-auto">
       <div class="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 class="text-2xl font-bold mb-6">Account Settings</h2>
@@ -204,6 +226,27 @@ const updateEmail = async () => {
             </button>
           </form>
         </div>
+
+        <!-- Delete Account Section -->
+        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4 text-red-600">Account Deletion</h3>
+          <p class="text-gray-600 mb-4">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <button
+            @click="openDeleteModal"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Delete Account
+          </button>
+        </div>
+
+        <!-- Delete Account Modal -->
+        <DeleteAccountModal
+          :is-open="showDeleteModal"
+          @confirm="handleDeleteAccount"
+          @cancel="closeDeleteModal"
+        />
       </div>
     </div>
   </div>

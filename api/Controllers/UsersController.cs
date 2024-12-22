@@ -114,6 +114,28 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("self")]
+    public async Task<IActionResult> DeleteSelf()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        if (user.IsAdmin)
+        {
+            return BadRequest(new { message = "Admin users cannot delete their own accounts" });
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpPost("{id}/reset-password")]
     public async Task<IActionResult> AdminResetPassword(int id, [FromBody] AdminResetPasswordRequest request)
     {
