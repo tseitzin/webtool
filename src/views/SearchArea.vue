@@ -10,15 +10,17 @@ import StockSearchResult from '../components/StockSearchResult.vue'
 import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 import type { StockData, MarketMovers } from '../types/polygon'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
+import { useSearchStore } from '../stores/search'
 
 const router = useRouter()
 const auth = useAuthStore()
+const searchStore = useSearchStore()
 const savedStocks = ref<StockData[]>([])
-const selectedStock = ref<StockData | null>(null)
+const selectedStock = ref<StockData | null>(searchStore.lastSearchedStock)
 const marketMovers = ref<MarketMovers | null>(null)
 const error = ref('')
 const loading = ref(false)
-const searchSymbol = ref('')
+const searchSymbol = ref(searchStore.lastSearchSymbol)
 
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
   useCollapsibleSection('search_intro')
@@ -67,9 +69,11 @@ const searchStock = async () => {
   try {
     const stock = await polygonService.getStockSnapshot(currentStock)
     selectedStock.value = stock
+    searchStore.setLastSearchedStock(stock)
   } catch (e: any) {
     error.value = currentStock + ' is not a valid symbol or is currently unavailable and cannot be used in your analysis.'
     selectedStock.value = null
+    searchStore.clearSearch()
   } finally {
     loading.value = false
   }
@@ -79,6 +83,7 @@ const clearSearch = () => {
   searchSymbol.value = ''
   selectedStock.value = null
   error.value = ''
+  searchStore.clearSearch()
 }
 
 const toggleSavedStock = async (symbol: string) => {
