@@ -80,6 +80,7 @@ export interface PolygonStockSnapshot {
     gainers: MarketMover[]
     losers: MarketMover[]
     marketStatus?: string
+    lastUpdate?: string
   }
 
   export interface CompanyAddress {

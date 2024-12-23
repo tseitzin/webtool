@@ -120,6 +120,9 @@ const navigateToSearch = () => {
               :current-symbol="companyDetails.ticker"
             />
           </div>
+          <div v-else class="font-semibold text-lg bg-white rounded-lg shadow-md p-3">
+            No related companies
+          </div>
 
         <!-- Key Statistics -->
         <div class="bg-white rounded-lg shadow-md p-6">

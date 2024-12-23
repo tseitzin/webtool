@@ -1,6 +1,7 @@
 import { polygonService } from './polygonService'
 import { stockService } from './stockService'
 import type { StockData, MarketMovers } from '../types/polygon'
+import { marketMoversService } from './marketMoversService'
 
 export class SearchAreaService {
   private static instance: SearchAreaService
@@ -20,7 +21,7 @@ export class SearchAreaService {
     try {
       const [updatedStocks, marketMovers] = await Promise.all([
         this.refreshSavedStocks(savedStocks),
-        polygonService.getMarketMovers()
+        marketMoversService.getMarketMovers()
       ])
       onUpdate(updatedStocks, marketMovers)
     } catch (error) {
