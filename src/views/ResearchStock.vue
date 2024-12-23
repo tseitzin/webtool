@@ -5,13 +5,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { polygonService } from '../services/polygonService'
 import { formatNumber } from '../utils/formatters'
-import type { CompanyDetails, NewsArticle } from '../types/polygon'
+import type { CompanyDetails, NewsArticle, StockData, RelatedCompany } from '../types/polygon'
+import StockDetailsCard from '../components/StockDetailsCard.vue'
+import RelatedCompanies from '../components/RelatedCompanies.vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const companyDetails = ref<CompanyDetails | null>(null)
 const newsArticles = ref<NewsArticle[]>([])
+const stockData = ref<StockData | null>(null)
+const relatedCompanies = ref<RelatedCompany[]>([])
 const loading = ref(true)
 const error = ref('')
 
@@ -28,12 +32,16 @@ onMounted(async () => {
   }
 
   try {
-    const [details, news] = await Promise.all([
+    const [details, news, stock, related] = await Promise.all([
       polygonService.getCompanyDetails(symbol),
-      polygonService.getCompanyNews(symbol)])
+      polygonService.getCompanyNews(symbol),
+      polygonService.getStockSnapshot(symbol),
+      polygonService.getRelatedCompanies(symbol)])
 
     companyDetails.value = details
     newsArticles.value = news
+    stockData.value = stock
+    relatedCompanies.value = related
   } catch (e) {
     error.value = 'Failed to load company information'
     console.error(e)
@@ -98,6 +106,20 @@ const navigateToSearch = () => {
             </div>
           </div>
         </div>
+
+        <!-- Stock Details Section -->
+        <StockDetailsCard
+          v-if="stockData"
+          :stock="stockData"
+        />
+
+        <!-- Related Companies Section -->
+         <div v-if="relatedCompanies">
+            <RelatedCompanies
+              :companies="relatedCompanies"
+              :current-symbol="companyDetails.ticker"
+            />
+          </div>
 
         <!-- Key Statistics -->
         <div class="bg-white rounded-lg shadow-md p-6">

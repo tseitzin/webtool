@@ -73,7 +73,6 @@ export interface PolygonStockSnapshot {
     price: number
     changePercent: number
     volume: number
-    lastUpdate: any
     marketStatus?: string
   }
   
@@ -81,7 +80,6 @@ export interface PolygonStockSnapshot {
     gainers: MarketMover[]
     losers: MarketMover[]
     marketStatus?: string
-    lastUpdate: Date
   }
 
   export interface CompanyAddress {
@@ -161,4 +159,15 @@ export interface PolygonStockSnapshot {
     results: NewsArticle[]
     status?: string
     next_url?: string
+  }
+
+  export interface RelatedCompany {
+    ticker: string
+  }
+  
+  export interface RelatedCompaniesResponse {
+    request_id: string
+    results: RelatedCompany[]
+    status: string
+    ticker: string
   }

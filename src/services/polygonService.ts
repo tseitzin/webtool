@@ -8,7 +8,9 @@ import type {
   CompanyDetailsResponse,
   CompanyDetails, 
   NewsResponse,
-  NewsArticle
+  NewsArticle,
+  RelatedCompany,
+  RelatedCompaniesResponse
 } from '../types/polygon'
 
 export class PolygonService {
@@ -129,6 +131,19 @@ export class PolygonService {
     } catch (error) {
       console.error('Error fetching company news:', error)
       throw new Error('Failed to fetch company news')
+    }
+  }
+
+  async getRelatedCompanies(symbol: string): Promise<RelatedCompany[]> {
+    try {
+      const apiKey = await this.getApiKey()
+      const response = await axios.get<RelatedCompaniesResponse>(
+        `${this.baseUrl}/v1/related-companies/${symbol}?apiKey=${apiKey}`
+      )
+      return response.data.results
+    } catch (error) {
+      console.error('Error fetching related companies:', error)
+      throw new Error('Failed to fetch related companies')
     }
   }
 }
