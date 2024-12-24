@@ -12,6 +12,7 @@ const confirmPassword = ref('')
 const newEmail = ref('')
 const successMessage = ref('')
 const error = ref('')
+const admin = ref(false)
 
 // Password visibility toggles
 const showCurrentPassword = ref(false)
@@ -22,6 +23,9 @@ const showDeleteModal = ref(false)
 onMounted(async () => {
   if (!auth.isAuthenticated) {
     router.push('/access-denied')
+  }
+  if (auth.user?.isAdmin) {
+    admin.value = true
   }
 })
 
@@ -228,7 +232,7 @@ const handleDeleteAccount = async () => {
         </div>
 
         <!-- Delete Account Section -->
-        <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <div v-if="!admin" class="mt-8 bg-white shadow-md rounded-lg p-6">
           <h3 class="text-lg font-semibold mb-4 text-red-600">Account Deletion</h3>
           <p class="text-gray-600 mb-4">
             Once you delete your account, there is no going back. Please be certain.
@@ -241,12 +245,13 @@ const handleDeleteAccount = async () => {
           </button>
         </div>
 
-        <!-- Delete Account Modal -->
-        <DeleteAccountModal
-          :is-open="showDeleteModal"
-          @confirm="handleDeleteAccount"
-          @cancel="closeDeleteModal"
-        />
+          <!-- Delete Account Modal -->
+          <DeleteAccountModal
+            :is-open="showDeleteModal"
+            @confirm="handleDeleteAccount"
+            @cancel="closeDeleteModal"
+          />
+          
       </div>
     </div>
   </div>

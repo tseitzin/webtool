@@ -9,6 +9,7 @@ import type { CompanyDetails, NewsArticle, StockData, RelatedCompany } from '../
 import StockDetailsCard from '../components/StockDetailsCard.vue'
 import RelatedCompanies from '../components/RelatedCompanies.vue'
 import NewsSection from '../components/NewsSection.vue'
+import { stockService } from '../services/stockService'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +20,7 @@ const stockData = ref<StockData | null>(null)
 const relatedCompanies = ref<RelatedCompany[]>([])
 const loading = ref(true)
 const error = ref('')
+const isSaved = ref(false)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -43,6 +45,11 @@ onMounted(async () => {
     newsArticles.value = news
     stockData.value = stock
     relatedCompanies.value = related
+
+    // Check if stock is already saved
+    const savedStocks = await stockService.getSavedStocks()
+    isSaved.value = savedStocks.some(s => s.symbol === symbol)
+
   } catch (e) {
     error.value = 'Failed to load company information'
     console.error(e)
@@ -50,6 +57,22 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const toggleSaveStock = async () => {
+  if (!stockData.value) return
+  
+  try {
+    if (isSaved.value) {
+      await stockService.removeSavedStock(stockData.value.symbol)
+    } else {
+      await stockService.saveStock(stockData.value)
+    }
+    isSaved.value = !isSaved.value
+  } catch (e) {
+    error.value = 'Failed to update saved stocks'
+    console.error(e)
+  }
+}
 
 const formatMarketCap = (marketCap: number): string => {
   if (marketCap >= 1e12) {
@@ -96,6 +119,19 @@ const navigateToSearch = () => {
             <div>
               <h1 class="text-2xl text-gray-900">Company Name:  {{ companyDetails.name }}</h1>
               <p class="text-xl font-bold text-gray-800">Stock Symbol:  {{ companyDetails.ticker }}</p>
+            </div>
+            <div class="">
+              <button
+                @click="toggleSaveStock"
+                :class="[
+                  'px-4 py-2 rounded-lg font-medium transition-colors',
+                  isSaved
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                ]"
+              >
+                {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
+              </button>
             </div>
             <div>
                 <button
