@@ -228,11 +228,11 @@ const navigateToResearch = (symbol: string) => {
                 <h3 class="text-sm font-bold text-gray-800">{{ stock.companyName }}</h3>
               </div>
               <div class="w-24">
-                <p class="text-sm text-gray-500">Price</p>
+                <p class="text-sm text-gray-500">Current Price</p>
                 <p class="font-semibold">{{ formatCurrency(stock.price) }}</p>
               </div>
               <div class="w-40">
-                <p class="text-sm text-gray-500">Change</p>
+                <p class="text-sm text-gray-500">Today's Change</p>
                 <p :class="['font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
                   {{ formatChange(stock.change, stock.changePercent) }}
                 </p>

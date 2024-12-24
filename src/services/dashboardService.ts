@@ -5,7 +5,7 @@ import type { StockData } from '../types/polygon'
 export class DashboardService {
   private static instance: DashboardService
   private refreshInterval: number | null = null
-  private readonly REFRESH_INTERVAL = 30000 // 30 seconds
+  private readonly REFRESH_INTERVAL = 60000 // 60 seconds
 
   private constructor() {}
 

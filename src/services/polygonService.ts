@@ -48,9 +48,9 @@ export class PolygonService {
         symbol: ticker.ticker,
         companyName: company.name,
         price: currentPrice,
-        change: ticker.todaysChange,
+        change: currentPrice - ticker.prevDay.c,
         marketCap: 0, // Not provided in snapshot
-        changePercent: ticker.todaysChangePerc,
+        changePercent: ((currentPrice - ticker.prevDay.c)/currentPrice)*100,
         volume: ticker.day.v,
         timestamp: new Date(ticker.updated / 1000000).toISOString(),
         open: ticker.day.o,

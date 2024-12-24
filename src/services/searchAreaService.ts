@@ -6,7 +6,7 @@ import { marketMoversService } from './marketMoversService'
 export class SearchAreaService {
   private static instance: SearchAreaService
   private refreshInterval: number | null = null
-  private readonly REFRESH_INTERVAL = 30000 // 30 seconds
+  private readonly REFRESH_INTERVAL = 60000 // 60 seconds
 
   private constructor() {}
 

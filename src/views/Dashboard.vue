@@ -201,7 +201,7 @@ const fetchSavedCryptos = async () => {
                 <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Change</p>
+                <p class="text-sm text-gray-500">Today's Change</p>
                 <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
                   {{ formatChange(stock.change, stock.changePercent) }}
                 </p>

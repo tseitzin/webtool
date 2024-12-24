@@ -19,7 +19,7 @@ const formatChange = (change: number, changePercent: number): string => {
         <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
       </div>
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-sm text-gray-500">Change</h3>
+        <h3 class="text-sm text-gray-500">Today's Change</h3>
         <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
           {{ formatChange(stock.change, stock.changePercent) }}
         </p>
