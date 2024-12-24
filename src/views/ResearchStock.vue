@@ -8,6 +8,7 @@ import { formatNumber } from '../utils/formatters'
 import type { CompanyDetails, NewsArticle, StockData, RelatedCompany } from '../types/polygon'
 import StockDetailsCard from '../components/StockDetailsCard.vue'
 import RelatedCompanies from '../components/RelatedCompanies.vue'
+import NewsSection from '../components/NewsSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -187,19 +188,12 @@ const navigateToSearch = () => {
         </div>
 
         <!-- Company News Section -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-6">Related news for {{ companyDetails.ticker }}({{ companyDetails.name }}) over the last 30 days</h2>
-          <div v-if="newsArticles.length" class="space-y-4"> <!-- Changed to vertical stack -->
-            <NewsArticleCard
-              v-for="article in newsArticles"
-              :key="article.id"
-              :article="article"
-            />
-          </div>
-          <div v-else class="text-center text-gray-500">
-            No recent news articles found for {{ companyDetails.name }}
-          </div>
-        </div>
+        <NewsSection
+          v-if="companyDetails"
+          :articles="newsArticles"
+          :company-name="companyDetails.name"
+          :symbol="companyDetails.ticker"
+        />
 
       </div>
     </div>

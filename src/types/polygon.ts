@@ -164,6 +164,10 @@ export interface PolygonStockSnapshot {
 
   export interface RelatedCompany {
     ticker: string
+    name?: string
+    price?: number
+    previousClose?: number
+
   }
   
   export interface RelatedCompaniesResponse {

@@ -140,13 +140,31 @@ export class PolygonService {
       const response = await axios.get<RelatedCompaniesResponse>(
         `${this.baseUrl}/v1/related-companies/${symbol}?apiKey=${apiKey}`
       )
-      return response.data.results
+  
+      // Fetch additional details for each company
+      const companiesWithDetails = await Promise.all(
+        response.data.results.map(async (company) => {
+          try {
+            const snapshot = await this.getStockSnapshot(company.ticker)
+            return {
+              ...company,
+              name: snapshot.companyName,
+              price: snapshot.price,
+              previousClose: snapshot.previousClose
+            }
+          } catch (error) {
+            console.error(`Error fetching details for ${company.ticker}:`, error)
+            return company
+          }
+        })
+      )
+  
+      return companiesWithDetails
     } catch (error) {
       console.error('Error fetching related companies:', error)
       throw new Error('Failed to fetch related companies')
     }
   }
-}
-
+} 
 
 export const polygonService = new PolygonService()
