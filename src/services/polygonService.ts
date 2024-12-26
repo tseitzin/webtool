@@ -12,7 +12,6 @@ import type {
   RelatedCompany,
   RelatedCompaniesResponse
 } from '../types/polygon'
-import RelatedCompanies from '../components/RelatedCompanies.vue'
 
 export class PolygonService {
   private readonly baseUrl = 'https://api.polygon.io'

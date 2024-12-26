@@ -3,7 +3,6 @@ import { useRouter } from 'vue-router'
 import type { RelatedCompany } from '../types/polygon'
 import { formatCurrency } from '../utils/formatters'
 import { computed, ref } from 'vue';
-import { symbolName } from 'typescript';
 
 const props = defineProps<{
   companies: RelatedCompany[]
