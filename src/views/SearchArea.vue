@@ -11,15 +11,27 @@ import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue
 import type { StockData, MarketMovers } from '../types/polygon'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { useSearchStore } from '../stores/search'
+// import MarketSummaryCard from '../components/MarketSummaryCard.vue'
+import api from '../api/axios'
+
+interface MarketSummary {
+  totalVolume: number
+  averageChange: number
+  topGainers: StockData[]
+  topLosers: StockData[]
+  mostActive: StockData[]
+}
 
 const router = useRouter()
 const auth = useAuthStore()
+const marketSummary = ref<MarketSummary | null>(null)
 const searchStore = useSearchStore()
 const savedStocks = ref<StockData[]>([])
 const selectedStock = ref<StockData | null>(searchStore.lastSearchedStock)
 const marketMovers = ref<MarketMovers | null>(null)
 const error = ref('')
 const loading = ref(false)
+const marketLoading = ref(false)
 const searchSymbol = ref(searchStore.lastSearchSymbol)
 
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
@@ -30,7 +42,11 @@ onMounted(async () => {
     router.push('/access-denied')
     return
   }
-  await fetchInitialData()
+  await Promise.all([
+    fetchInitialData(),
+    fetchMarketSummary()
+  ])
+  
 })
 
 // Cleanup on component unmount
@@ -57,6 +73,20 @@ const fetchInitialData = async () => {
     console.error('Error:', e)
   } finally {
     loading.value = false
+  }
+}
+
+const fetchMarketSummary = async () => {
+  marketLoading.value = true
+  error.value = ''
+  try {
+    const response = await api.get('/stockdata/summary')
+    marketSummary.value = response.data
+  } catch (e: any) {
+    error.value = 'Failed to load market summary'
+    console.error('Error:', e)
+  } finally {
+    marketLoading.value = false
   }
 }
 
@@ -267,11 +297,9 @@ const navigateToResearch = (symbol: string) => {
       </div>
 
        <!-- Loading State -->
-       <div 
-        v-if="loading" 
-        class="flex justify-center items-center py-8"
-      >
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+      <div v-if="!marketMovers" class="mt-6 bg-white rounded-lg shadow-md p-8">
+        <h1 class="font-bold text-2xl text-center">Loading Market Movers</h1>
+        <LoadingSpinner size="lg" />
       </div>
 
 
@@ -293,7 +321,7 @@ const navigateToResearch = (symbol: string) => {
           <div class="overflow-x-auto">
             <table class="min-w-full">
               <thead>
-                <tr class="text-left text-xs font-medium text-gray-500">
+                <tr class="text-left text-xs font-medium font-bold text-gray-500">
                   <th class="pb-1">Symbol</th>
                   <th class="pb-1">Price</th>
                   <th class="pb-1">Change</th>
@@ -304,9 +332,15 @@ const navigateToResearch = (symbol: string) => {
                 <tr
                   v-for="stock in marketMovers.gainers"
                   :key="stock.symbol"
-                  class="hover:bg-gray-50 text-sm"
+                  class="text-sm"
                 >
-                  <td class="py-1 font-medium">{{ stock.symbol }}</td>
+                  <td 
+                    class="flex justify-between 
+                      items-center cursor-pointer text-black-600 
+                      hover:text-blue-800 hover:font-bold hover:bg-gray-50 
+                      w-5 rounded-lg transition-colors"
+                    @click="navigateToResearch(stock.symbol)">
+                    {{ stock.symbol }}</td>
                   <td class="py-1">{{ formatCurrency(stock.price) }}</td>
                   <td class="py-1 text-green-600 font-semibold">
                     {{ formatPercent(stock.changePercent) }}
@@ -319,12 +353,12 @@ const navigateToResearch = (symbol: string) => {
       </div>
 
         <!-- Top Losers -->
-        <div class="bg-white rounded-lg shadow-md p-4">
+        <div class="bg-white rounded-lg shadow-md p-6">
           <h2 class="text-lg font-bold mb-2 text-red-600">Top 10 Losers</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full">
               <thead>
-                <tr class="text-left text-xs font-medium text-gray-500">
+                <tr class="text-left text-xs font-medium font-bold text-gray-500">
                   <th class="pb-1">Symbol</th>
                   <th class="pb-1">Price</th>
                   <th class="pb-1">Change</th>
@@ -337,7 +371,13 @@ const navigateToResearch = (symbol: string) => {
                   :key="stock.symbol"
                   class="hover:bg-gray-50 text-sm"
                 >
-                  <td class="py-1 font-medium">{{ stock.symbol }}</td>
+                <td 
+                    class="flex justify-between 
+                      items-center cursor-pointer text-black-600 
+                      hover:text-blue-800 hover:font-bold hover:bg-gray-50 
+                      w-5 rounded-lg transition-colors"
+                    @click="navigateToResearch(stock.symbol)">
+                    {{ stock.symbol }}</td>
                   <td class="py-1">{{ formatCurrency(stock.price) }}</td>
                   <td class="py-1 text-red-600 font-semibold">
                     {{ formatPercent(stock.changePercent) }}
@@ -349,6 +389,7 @@ const navigateToResearch = (symbol: string) => {
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </template>

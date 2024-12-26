@@ -8,6 +8,7 @@ import App from './App.vue'
 import NewsArticleCard from './components/NewsArticleCard.vue'
 import CryptoSearchResult from './components/CryptoSearchResult.vue'
 import MarketStatusMessage from './components/MarketStatusMessage.vue'
+import LoadingSpinner from './components/LoadingSpinner.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -33,4 +34,6 @@ app.use(Toast, toastOptions)
 app.component('NewsArticleCard', NewsArticleCard);
 app.component('CryptoSearchResult', CryptoSearchResult);
 app.component('MarketStatusMessage', MarketStatusMessage);
+app.component('LoadingSpinner', LoadingSpinner)
+
 app.mount('#app')

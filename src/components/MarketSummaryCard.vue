@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { formatNumber, formatPercent } from '../utils/formatters'
+
+const router = useRouter()
 
 defineProps<{
   title: string
@@ -10,6 +13,10 @@ defineProps<{
   }>
   type: 'gainers' | 'losers' | 'active'
 }>()
+
+const navigateToResearch = (symbol: string) => {
+  router.push(`/research/${symbol}`)
+}
 </script>
 
 <template>
@@ -30,12 +37,13 @@ defineProps<{
       <div 
         v-for="stock in stocks" 
         :key="stock.symbol" 
-        class="flex justify-between items-center"
+        class="flex justify-between items-center cursor-pointer text-indigo-600 hover:text-indigo-800 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+        @click="navigateToResearch(stock.symbol)"
       >
         <span class="font-medium">{{ stock.symbol }}</span>
         <span 
           :class="[
-            type === 'gainers' ? 'text-green-600' :
+            type === 'gainers' ? 'text-blue-600' :
             type === 'losers' ? 'text-red-600' :
             'text-gray-600'
           ]"

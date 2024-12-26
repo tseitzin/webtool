@@ -12,6 +12,7 @@ import type {
   RelatedCompany,
   RelatedCompaniesResponse
 } from '../types/polygon'
+import RelatedCompanies from '../components/RelatedCompanies.vue'
 
 export class PolygonService {
   private readonly baseUrl = 'https://api.polygon.io'
@@ -140,29 +141,37 @@ export class PolygonService {
       const response = await axios.get<RelatedCompaniesResponse>(
         `${this.baseUrl}/v1/related-companies/${symbol}?apiKey=${apiKey}`
       )
+
+      if(response.data.results) {
   
       // Fetch additional details for each company
-      const companiesWithDetails = await Promise.all(
-        response.data.results.map(async (company) => {
-          try {
-            const snapshot = await this.getStockSnapshot(company.ticker)
-            return {
-              ...company,
-              name: snapshot.companyName,
-              price: snapshot.price,
-              previousClose: snapshot.previousClose
+        const companiesWithDetails = await Promise.all(
+          response.data.results.map(async (company) => {
+            try {
+              const snapshot = await this.getStockSnapshot(company.ticker)
+              return {
+                ...company,
+                name: snapshot.companyName,
+                price: snapshot.price,
+                previousClose: snapshot.previousClose
+              }
+            } catch (error) {
+              console.error(`Error fetching details for ${company.ticker}:`, error)
+              return {
+                ...company,
+                name: "",
+                price: 0,
+                previousClose: 0
+              }
             }
-          } catch (error) {
-            console.error(`Error fetching details for ${company.ticker}:`, error)
-            return company
-          }
-        })
-      )
-  
-      return companiesWithDetails
+          })
+        )  
+        return companiesWithDetails
+      }
+      return []
     } catch (error) {
       console.error('Error fetching related companies:', error)
-      throw new Error('Failed to fetch related companies')
+      return []
     }
   }
 } 

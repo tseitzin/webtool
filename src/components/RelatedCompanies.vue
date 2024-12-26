@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import type { RelatedCompany } from '../types/polygon'
 import { formatCurrency } from '../utils/formatters'
 import { computed, ref } from 'vue';
+import { symbolName } from 'typescript';
 
 const props = defineProps<{
   companies: RelatedCompany[]
@@ -37,7 +38,8 @@ const toggleExpanded = () => {
   <div class="bg-white rounded-lg shadow-md p-6">
     
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Related Companies</h2>
+      <h2 v-if="companies.length == 0" class="text-xl font-semibold">No related companies for {{ currentSymbol }}</h2>
+      <h2 v-else class="text-xl font-semibold">Related Companies</h2>
       <button
         v-if="companies.length > 3"
         @click="toggleExpanded"
