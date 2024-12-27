@@ -153,11 +153,9 @@ const formatChange = (change: number, changePercent: number): string => {
         </div>
 
         <!-- Loading State -->
-        <div 
-          v-if="loading" 
-          class="mt-4 flex justify-center"
-        >
-          <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
+        <div v-if="loading" class="mt-6 bg-white rounded-lg shadow-md p-8">
+          <h1 class="font-bold text-2xl text-center">Loading Crypto Watchlist</h1>
+          <LoadingSpinner size="lg" />
         </div>
 
         <!-- Search Results -->

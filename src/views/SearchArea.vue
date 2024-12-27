@@ -188,11 +188,9 @@ const navigateToResearch = (symbol: string) => {
       </div>
 
       <!-- Loading State -->
-      <div 
-        v-if="loading" 
-        class="flex justify-center items-center py-8"
-      >
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+      <div v-if="loading" class="mt-6 bg-white rounded-lg shadow-md p-8">
+        <h1 class="font-bold text-2xl text-center">Loading Saved Stocks</h1>
+        <LoadingSpinner size="lg" />
       </div>
 
       <!-- Stock Search -->
