@@ -215,7 +215,7 @@ const navigateToResearch = (symbol: string) => {
           </div>
           <button
             @click="searchStock"
-            class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+            class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-800 transition-colors"
           >
             Search
           </button>
@@ -232,76 +232,95 @@ const navigateToResearch = (symbol: string) => {
 
       <!-- Saved Stocks Section -->
       <div v-if="savedStocks.length > 0" class="mt-8">
-        <h2 class="text-xl sm:text-2xl font-bold mb-4">Your Saved Stocks</h2>
-        <MarketStatusMessage 
-          v-if="savedStocks[0]?.marketStatus"
-          :market-status="savedStocks[0].marketStatus" 
-        />
-        <div class="space-y-3">
-          <!-- Stock Card - Scrollable on mobile -->
-          <div
-            v-for="stock in savedStocks"
-            :key="stock.symbol"
-            class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4"
-          >
-            <div class="overflow-x-auto">
-              <div class="min-w-max">
-                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-4">
-                  <!-- Basic Info -->
-                  <div class="flex flex-row sm:flex-col gap-4 sm:gap-2">
-                    <div>
-                      <p class="text-xs sm:text-sm text-gray-500">Symbol</p>
-                      <h3 class="text-base sm:text-lg font-bold">{{ stock.symbol }}</h3>
-                    </div>
-                    <div class="flex-grow sm:flex-grow-0">
-                      <p class="text-xs sm:text-sm text-gray-600">Company Name</p>
-                      <h3 class="text-sm sm:text-base font-bold text-gray-800">{{ stock.companyName }}</h3>
-                    </div>
-                  </div>
+    <div class="flex flex-row justify-between items-center mb-4">
+      <h2 class="text-xl sm:text-2xl font-bold">Your Watchlisted Stocks</h2>
+    </div>
 
-                  <!-- Price Info -->
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div>
-                      <p class="text-xs sm:text-sm text-gray-500">Current Price</p>
-                      <p class="text-sm sm:text-base font-semibold">{{ formatCurrency(stock.price) }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs sm:text-sm text-gray-500">Today's Change</p>
-                      <p :class="['text-sm sm:text-base font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                        {{ formatChange(stock.change, stock.changePercent) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="text-xs sm:text-sm text-gray-500">Volume</p>
-                      <p class="text-sm sm:text-base font-semibold">{{ formatNumber(stock.volume) }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs sm:text-sm text-gray-500">Prev Close</p>
-                      <p class="text-sm sm:text-base font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
-                    </div>
-                  </div>
-                </div>
+    <MarketStatusMessage 
+      v-if="savedStocks[0]?.marketStatus"
+      :market-status="savedStocks[0].marketStatus" 
+    />
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-2 sm:justify-end">
-                  <button
-                    @click="navigateToResearch(stock.symbol)"
-                    class="w-full sm:w-auto px-4 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    Research Stock
-                  </button>
-                  <button
-                    @click="toggleSavedStock(stock.symbol)"
-                    class="w-full sm:w-auto px-4 py-2 bg-red-500 text-sm text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
+    <div class="space-y-4">
+      <div
+        v-for="stock in savedStocks"
+        :key="stock.symbol"
+        class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4"
+      >
+        <!-- Stock Header -->
+        <div class="flex justify-between items-center mb-1">
+          <div>
+            <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
+            <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              @click="navigateToResearch(stock.symbol)"
+              class="px-4 py-2 bg-green-600 text-sm text-white rounded-lg hover:bg-green-800 transition-colors"
+            >
+              Research
+            </button>
+            <button
+              @click="toggleSavedStock(stock.symbol)"
+              class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+
+        <!-- Stock Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Current Price -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Current Price</p>
+            <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
+          </div>
+
+          <!-- Today's Change -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Today's Change</p>
+            <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
+              {{ formatChange(stock.change, stock.changePercent) }}
+            </p>
+          </div>
+
+          <!-- Volume -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Volume</p>
+            <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
+          </div>
+
+          <!-- Previous Close -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Previous Close</p>
+            <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
+          </div>
+        </div>
+
+        <!-- Additional Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+          <!-- Open -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Open</p>
+            <p class="text-lg font-semibold">{{ stock.open ? formatCurrency(stock.open) : 'N/A' }}</p>
+          </div>
+
+          <!-- High -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">High</p>
+            <p class="text-lg font-semibold">{{ stock.high ? formatCurrency(stock.high) : 'N/A' }}</p>
+          </div>
+
+          <!-- Low -->
+          <div class="bg-gray-100 p-2 rounded-lg">
+            <p class="text-sm text-gray-500">Low</p>
+            <p class="text-lg font-semibold">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</p>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
       <!-- Market Movers Section -->
       <div v-if="marketMovers" class="mt-8 space-y-4">
@@ -314,6 +333,9 @@ const navigateToResearch = (symbol: string) => {
         <!-- Last Update Time -->
         <div v-if="marketMovers.lastUpdate" class="text-xs sm:text-sm text-gray-600">
           Last updated: {{ new Date(marketMovers.lastUpdate).toLocaleString() }}
+        </div>
+        <div class="ml-2 font-semibold">
+          Click on any of the Gainers or Losers symbol name to learn more about that stock.
         </div>
 
         <!-- Movers Grid -->

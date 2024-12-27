@@ -115,7 +115,7 @@ const fetchSavedCryptos = async () => {
       <!-- Welcome Section -->
       <div class="bg-gray-50 rounded-lg shadow-lg overflow-hidden mb-10">
         <CollapsibleSectionHeader
-          :title="`Welcome back, ${auth.user?.name}!`"
+          :title="`${auth.user?.name}'s Dashboard`"
           :is-expanded="isWelcomeExpanded"
           @toggle="toggleWelcome"
         />
@@ -185,14 +185,8 @@ const fetchSavedCryptos = async () => {
             :key="stock.symbol"
             class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
           >
-            <div class="flex justify-between items-center">
-              <h3 class="text-lg font-bold">{{ stock.symbol }} - {{ stock.companyName }}</h3>
-              <button
-                @click="removeSavedStock(stock.symbol)"
-                class="text-red-600 hover:text-red-800 transition-colors"
-              >
-                Remove
-              </button>
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-md font-semibold">{{ stock.symbol }} - {{ stock.companyName }}</h3>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 ml-4 mt-1">
@@ -230,14 +224,24 @@ const fetchSavedCryptos = async () => {
                 <span class="ml-1">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</span>
               </div>
             </div>
-            <div class="mt-4">
-              <button
-                @click="navigateToResearch(stock.symbol)"
-                class="px-2 py-2 bg-green-400 text-sm font-bold text-black rounded-lg hover:bg-green-600 transition-colors"
-                title="Research Stock"
-              >
-                Company Details
-              </button>
+            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 ml-1 mt-1">
+              <div class="mt-4">
+                <button
+                  @click="navigateToResearch(stock.symbol)"
+                  class="px-4 py-2 bg-green-600 text-sm text-white rounded-lg hover:bg-green-800 transition-colors"
+                  title="Research Stock"
+                >
+                  Research
+                </button>
+              </div>
+              <div class="mt-4 flex justify-end">
+                <button
+                  @click="removeSavedStock(stock.symbol)"
+                  class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -255,14 +259,14 @@ const fetchSavedCryptos = async () => {
         </div>
 
         <!-- Saved Cryptocurrencies -->
-      <div v-else class="mt-12">
+      <div v-else class="mt-12 space-y-4">
         <div class="flex flex-row justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Your Cryptocurrency Watchlist</h2>
+          <h2 class="text-xl font-bold">Your Crypto Watchlist</h2>
           <button
             @click="navigateToCryptoSearch"
             class="px-4 py-2 bg-orange-600 text-sm text-white rounded-lg hover:bg-orange-700 transition-colors"
           >
-            Search Crypto
+          Search Crypto
           </button>
         </div>
         <div class="space-y-3">
@@ -318,11 +322,6 @@ const fetchSavedCryptos = async () => {
                     <span class="ml-1">{{ crypto.low24h ? formatCurrency(Number(crypto.low24h)) : 'N/A' }}</span>
                   </div>
                 </div>
-
-
-
-
-
 
             </div>
           </div>

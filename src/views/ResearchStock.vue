@@ -116,10 +116,10 @@ const navigateToSearch = () => {
         <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div class="w-full sm:w-auto">
-              <h1 class="text-xl sm:text-2xl text-gray-900 break-words">
-                Company Name: {{ companyDetails.name }}
+              <h1 class="text-lg sm:text-2xl font-semibold text-gray-900 break-words">
+                Company Name: <p>{{ companyDetails.name }}</p>
               </h1>
-              <p class="text-lg sm:text-xl font-bold text-gray-800">
+              <p class="text-lg sm:text-xl font-semibold text-gray-800">
                 Stock Symbol: {{ companyDetails.ticker }}
               </p>
             </div>
