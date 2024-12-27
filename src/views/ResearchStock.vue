@@ -1,4 +1,3 @@
-```vue
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -100,7 +99,7 @@ const navigateToSearch = () => {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-4 sm:py-8">
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-8">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
@@ -112,19 +111,23 @@ const navigateToSearch = () => {
       </div>
 
       <!-- Company Details -->
-      <div v-else-if="companyDetails" class="space-y-6">
+      <div v-else-if="companyDetails" class="space-y-4 sm:space-y-6">
         <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div class="flex items-start justify-between">
-            <div>
-              <h1 class="text-2xl text-gray-900">Company Name:  {{ companyDetails.name }}</h1>
-              <p class="text-xl font-bold text-gray-800">Stock Symbol:  {{ companyDetails.ticker }}</p>
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="w-full sm:w-auto">
+              <h1 class="text-xl sm:text-2xl text-gray-900 break-words">
+                Company Name: {{ companyDetails.name }}
+              </h1>
+              <p class="text-lg sm:text-xl font-bold text-gray-800">
+                Stock Symbol: {{ companyDetails.ticker }}
+              </p>
             </div>
-            <div class="">
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 @click="toggleSaveStock"
                 :class="[
-                  'px-4 py-2 rounded-lg font-medium transition-colors',
+                  'px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto text-center',
                   isSaved
                     ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-green-600 text-white hover:bg-green-700'
@@ -132,14 +135,12 @@ const navigateToSearch = () => {
               >
                 {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
               </button>
-            </div>
-            <div>
-                <button
-                    @click="navigateToSearch"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                    Return to Search
-                </button>
+              <button
+                @click="navigateToSearch"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto text-center"
+              >
+                Return to Search
+              </button>
             </div>
           </div>
         </div>
@@ -151,71 +152,73 @@ const navigateToSearch = () => {
         />
 
         <!-- Related Companies Section -->
-         <div v-if="relatedCompanies">
-            <RelatedCompanies
-              :companies="relatedCompanies"
-              :current-symbol="companyDetails.ticker"
-            />
-          </div>
-          <div v-else class="font-semibold text-lg bg-white rounded-lg shadow-md p-3">
-            No related companies
-          </div>
+        <div v-if="relatedCompanies">
+          <RelatedCompanies
+            :companies="relatedCompanies"
+            :current-symbol="companyDetails.ticker"
+          />
+        </div>
+        <div v-else class="font-semibold text-lg bg-white rounded-lg shadow-md p-3">
+          No related companies
+        </div>
 
         <!-- Key Statistics -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-1">Key Statistics</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            <div>
-              <p class="text-md text-gray-500">Market Cap</p>
-              <p class="text-md">{{ formatMarketCap(companyDetails.market_cap) }}</p>
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-xl font-semibold mb-4">Key Statistics</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Market Cap</p>
+              <p class="text-md font-semibold">{{ formatMarketCap(companyDetails.market_cap) }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Employees</p>
-              <p class="text-md">{{ formatNumber(companyDetails.total_employees) }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Employees</p>
+              <p class="text-md font-semibold">{{ formatNumber(companyDetails.total_employees) }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Listed Since</p>
-              <p class="text-md">{{ formatDate(companyDetails.list_date) }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Listed Since</p>
+              <p class="text-md font-semibold">{{ formatDate(companyDetails.list_date) }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Exchange</p>
-              <p class="text-md">{{ companyDetails.primary_exchange }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Exchange</p>
+              <p class="text-md font-semibold">{{ companyDetails.primary_exchange }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Industry</p>
-              <p class="text-sm">{{ companyDetails.sic_description }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Industry</p>
+              <p class="text-sm font-semibold">{{ companyDetails.sic_description }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Outstanding Shares</p>
-              <p class="text-md">{{ formatNumber(companyDetails.weighted_shares_outstanding) }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Outstanding Shares</p>
+              <p class="text-md font-semibold">{{ formatNumber(companyDetails.weighted_shares_outstanding) }}</p>
             </div>
           </div>
         </div>
 
         <!-- Company Description -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-2">About {{ companyDetails.name }}</h2>
-          <p class="text-gray-700 leading-relaxed">{{ companyDetails.description }}</p>
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
-            <div>
-              <p class="text-md text-gray-500">Headquarters</p>
-              <p class="text-gray-700 text-sm">{{ companyDetails.address.address1 }}</p>
-              <p class="text-gray-700 text-sm">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-xl font-semibold mb-4">About {{ companyDetails.name }}</h2>
+          <p class="text-gray-700 leading-relaxed text-sm sm:text-base mb-6">
+            {{ companyDetails.description }}
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Headquarters</p>
+              <p class="text-sm font-semibold">{{ companyDetails.address.address1 }}</p>
+              <p class="text-sm font-semibold">
                 {{ companyDetails.address.city }}, {{ companyDetails.address.state }} 
                 {{ companyDetails.address.postal_code }}
               </p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Phone</p>
-              <p class="text-gray-700 text-sm">{{ companyDetails.phone_number }}</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Phone</p>
+              <p class="text-sm font-semibold">{{ companyDetails.phone_number }}</p>
             </div>
-            <div>
-              <p class="text-md text-gray-500">Website</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-sm text-gray-500">Website</p>
               <a 
                 :href="companyDetails.homepage_url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-indigo-600 text-sm hover:text-indigo-800"
+                class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 break-words"
               >
                 {{ companyDetails.homepage_url }}
               </a>
@@ -230,9 +233,7 @@ const navigateToSearch = () => {
           :company-name="companyDetails.name"
           :symbol="companyDetails.ticker"
         />
-
       </div>
     </div>
   </div>
 </template>
-```
