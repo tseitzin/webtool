@@ -11,7 +11,7 @@ import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue
 import type { StockData, MarketMovers } from '../types/polygon'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { useSearchStore } from '../stores/search'
-// import MarketSummaryCard from '../components/MarketSummaryCard.vue'
+import { useStockRemoval } from '../composables/useStockRemoval'
 import api from '../api/axios'
 
 interface MarketSummary {
@@ -34,6 +34,8 @@ const loading = ref(false)
 const marketLoading = ref(false)
 const searchSymbol = ref(searchStore.lastSearchSymbol)
 
+const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
+
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
   useCollapsibleSection('search_intro')
 
@@ -55,6 +57,18 @@ watchEffect((onCleanup) => {
     searchAreaService.stopAutoRefresh()
   })
 })
+
+const handleRemoveStock = (symbol: string) => {
+  confirmRemoval(symbol)
+}
+
+const handleConfirmRemoval = async () => {
+  if (stockToRemove.value) {
+    await toggleSavedStock(stockToRemove.value)
+    cancelRemoval()
+  }
+}
+
 
 const fetchInitialData = async () => {
   loading.value = true
@@ -261,7 +275,7 @@ const navigateToResearch = (symbol: string) => {
               Research
             </button>
             <button
-              @click="toggleSavedStock(stock.symbol)"
+              @click="handleRemoveStock(stock.symbol)"
               class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
             >
               Remove
@@ -419,6 +433,15 @@ const navigateToResearch = (symbol: string) => {
         <h1 class="font-bold text-xl sm:text-2xl text-center">Loading Market Movers</h1>
         <LoadingSpinner size="lg" />
       </div>
+
+      <ConfirmationModal
+        :is-open="showRemoveModal"
+        title="Remove Stock"
+        message="Are you sure you want to remove this stock from your watchlist?"
+        @confirm="handleConfirmRemoval"
+        @cancel="cancelRemoval"
+      />
+
     </div>
   </div>
 </template>

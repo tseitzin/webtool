@@ -9,6 +9,7 @@ import StockDetailsCard from '../components/StockDetailsCard.vue'
 import RelatedCompanies from '../components/RelatedCompanies.vue'
 import NewsSection from '../components/NewsSection.vue'
 import { stockService } from '../services/stockService'
+import { useStockRemoval } from '../composables/useStockRemoval'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +21,7 @@ const relatedCompanies = ref<RelatedCompany[]>([])
 const loading = ref(true)
 const error = ref('')
 const isSaved = ref(false)
+const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -56,6 +58,17 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const handleRemoveStock = (symbol: string) => {
+  confirmRemoval(symbol)
+}
+
+const handleConfirmRemoval = async () => {
+  if (stockToRemove.value) {
+    await toggleSaveStock()
+    cancelRemoval()
+  }
+}
 
 const toggleSaveStock = async () => {
   if (!stockData.value) return
@@ -125,13 +138,9 @@ const navigateToSearch = () => {
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
-                @click="toggleSaveStock"
-                :class="[
-                  'px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto text-center',
-                  isSaved
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                ]"
+                @click="isSaved ? handleRemoveStock(companyDetails.ticker) : toggleSaveStock()"
+                class="px-4 py-2 text-sm font-medium rounded-md"
+                :class="isSaved ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'"
               >
                 {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
               </button>
@@ -233,6 +242,15 @@ const navigateToSearch = () => {
           :company-name="companyDetails.name"
           :symbol="companyDetails.ticker"
         />
+
+        <ConfirmationModal
+          :is-open="showRemoveModal"
+          title="Remove Stock"
+          message="Are you sure you want to remove this stock from your watchlist?"
+          @confirm="handleConfirmRemoval"
+          @cancel="cancelRemoval"
+        />
+        
       </div>
     </div>
   </div>

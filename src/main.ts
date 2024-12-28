@@ -9,6 +9,7 @@ import NewsArticleCard from './components/NewsArticleCard.vue'
 import CryptoSearchResult from './components/CryptoSearchResult.vue'
 import MarketStatusMessage from './components/MarketStatusMessage.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
+import ConfirmationModal from './components/ConfirmationModal.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -35,5 +36,6 @@ app.component('NewsArticleCard', NewsArticleCard);
 app.component('CryptoSearchResult', CryptoSearchResult);
 app.component('MarketStatusMessage', MarketStatusMessage);
 app.component('LoadingSpinner', LoadingSpinner)
+app.component('ConfirmationModal', ConfirmationModal)
 
 app.mount('#app')

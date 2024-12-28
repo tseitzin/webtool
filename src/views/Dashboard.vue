@@ -10,6 +10,8 @@ import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { CryptoData } from '../types/crypto'
 import { cryptoService } from '../services/cryptoService'
+import { useStockRemoval } from '../composables/useStockRemoval'
+
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -18,6 +20,8 @@ const savedCryptos = ref<CryptoData[]>([])
 const selectedCrypto = ref<CryptoData | null>(null)
 const errorStock = ref('')
 const loading = ref(false)
+
+const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
 const { isExpanded: isWelcomeExpanded, toggleSection: toggleWelcome } = 
   useCollapsibleSection('dashboard_welcome')
@@ -37,6 +41,17 @@ watchEffect((onCleanup) => {
     dashboardService.stopAutoRefresh()
   })
 })
+
+const handleRemoveStock = (symbol: string) => {
+  confirmRemoval(symbol)
+}
+
+const handleConfirmRemoval = async () => {
+  if (stockToRemove.value) {
+    await removeSavedStock(stockToRemove.value)
+    cancelRemoval()
+  }
+}
 
 const fetchSavedStocks = async () => {
   loading.value = true
@@ -236,7 +251,7 @@ const fetchSavedCryptos = async () => {
               </div>
               <div class="mt-4 flex justify-end">
                 <button
-                  @click="removeSavedStock(stock.symbol)"
+                  @click="handleRemoveStock(stock.symbol)"
                   class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   Remove
@@ -327,6 +342,14 @@ const fetchSavedCryptos = async () => {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        :is-open="showRemoveModal"
+        title="Remove Stock"
+        message="Are you sure you want to remove this stock from your watchlist?"
+        @confirm="handleConfirmRemoval"
+        @cancel="cancelRemoval"
+      />
 
       </div>
     </div>
