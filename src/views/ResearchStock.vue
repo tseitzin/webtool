@@ -4,12 +4,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { polygonService } from '../services/polygonService'
 import { formatNumber } from '../utils/formatters'
-import type { CompanyDetails, NewsArticle, StockData, RelatedCompany } from '../types/polygon'
+import type { CompanyDetails, NewsArticle, StockData, RelatedCompany, HistoricalDataPoint } from '../types/polygon'
 import StockDetailsCard from '../components/StockDetailsCard.vue'
 import RelatedCompanies from '../components/RelatedCompanies.vue'
 import NewsSection from '../components/NewsSection.vue'
 import { stockService } from '../services/stockService'
 import { useStockRemoval } from '../composables/useStockRemoval'
+import type { TimeRange } from '../types/polygon'
+import StockPriceChart from '../components/StockPriceChart.vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +25,9 @@ const loading = ref(true)
 const error = ref('')
 const isSaved = ref(false)
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
+const historicalData = ref<HistoricalDataPoint[]>([])
+const selectedTimeRange = ref<TimeRange>('1M')
+
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -36,16 +42,19 @@ onMounted(async () => {
   }
 
   try {
-    const [details, news, stock, related] = await Promise.all([
+    const [details, news, stock, related, historical] = await Promise.all([
       polygonService.getCompanyDetails(symbol),
       polygonService.getCompanyNews(symbol),
       polygonService.getStockSnapshot(symbol),
-      polygonService.getRelatedCompanies(symbol)])
+      polygonService.getRelatedCompanies(symbol),
+      polygonService.getHistoricalData(symbol, selectedTimeRange.value)
+      ])
 
     companyDetails.value = details
     newsArticles.value = news
     stockData.value = stock
     relatedCompanies.value = related
+    historicalData.value = historical
 
     // Check if stock is already saved
     const savedStocks = await stockService.getSavedStocks()
@@ -67,6 +76,21 @@ const handleConfirmRemoval = async () => {
   if (stockToRemove.value) {
     await toggleSaveStock()
     cancelRemoval()
+  }
+}
+
+// Add new function to handle time range changes
+const handleTimeRangeChange = async (range: string) => {
+  try {
+    if (companyDetails.value) {
+      const data = await polygonService.getHistoricalData(companyDetails.value.ticker, range)
+      historicalData.value = data
+    }
+    else {
+      return []
+    }
+  } catch (error) {
+    console.error('Failed to fetch historical data:', error)
   }
 }
 
@@ -158,6 +182,14 @@ const navigateToSearch = () => {
         <StockDetailsCard
           v-if="stockData"
           :stock="stockData"
+        />
+
+        <StockPriceChart
+          v-if="historicalData.length > 0"
+          :data="historicalData"
+          :symbol="companyDetails.ticker"
+          @time-range-changed="handleTimeRangeChange"
+          class="mb-6"
         />
 
         <!-- Related Companies Section -->

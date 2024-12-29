@@ -10,8 +10,10 @@ import type {
   NewsResponse,
   NewsArticle,
   RelatedCompany,
-  RelatedCompaniesResponse
+  RelatedCompaniesResponse,
+  HistoricalDataPoint
 } from '../types/polygon'
+import { getDateRange } from '../utils/dateUtils'
 
 export class PolygonService {
   private readonly baseUrl = 'https://api.polygon.io'
@@ -173,6 +175,23 @@ export class PolygonService {
       return []
     }
   }
+
+  async getHistoricalData(symbol: string, timeRange: string): Promise<HistoricalDataPoint[]> {
+    try {
+      const apiKey = await this.getApiKey()
+      const { startDate, endDate } = getDateRange(timeRange)
+      
+      const response = await axios.get(
+        `${this.baseUrl}/v2/aggs/ticker/${symbol}/range/1/day/${startDate}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`
+      )
+  
+      return response.data.results || []
+    } catch (error) {
+      console.error('Error fetching historical data:', error)
+      throw new Error('Failed to fetch historical data')
+    }
+  }
+  
 } 
 
 export const polygonService = new PolygonService()

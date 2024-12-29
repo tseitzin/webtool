@@ -176,3 +176,28 @@ export interface PolygonStockSnapshot {
     status: string
     ticker: string
   }
+
+  export interface HistoricalDataPoint {
+    v: number // volume
+    vw: number // volume weighted average price
+    o: number // open
+    c: number // close 
+    h: number // high
+    l: number // low
+    t: number // timestamp
+    n: number // number of transactions
+  }
+  
+  export interface HistoricalDataResponse {
+    ticker: string
+    queryCount: number
+    resultsCount: number
+    adjusted: boolean
+    results: HistoricalDataPoint[]
+    status: string
+    request_id: string
+    count: number
+  }
+  
+  export type TimeRange = '1W' | '1M' | '3M' | '6M' | '1Y'
+  
