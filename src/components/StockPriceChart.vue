@@ -9,11 +9,12 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartOptions
 } from 'chart.js'
 import type { HistoricalDataPoint } from '../types/polygon'
-import { formatNumber } from '../utils/formatters'
 import { createChartOptions } from '../utils/chartConfig'
+import { createVolumeChartOptions } from '../utils/volumeChartConfig'
 import TimeRangeSelector from './TimeRangeSelector.vue'
 import ChartDataSelector from './ChartDataSelector.vue'
 
@@ -81,49 +82,27 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = computed(() => {
+const chartOptions = computed<ChartOptions<'line'>>(() => {
   const baseOptions = createChartOptions(props.symbol)
-  
-  if (selectedDataType.value === 'volume') {
-    return {
-      ...baseOptions,
-      scales: {
-        ...baseOptions.scales,
-        y: {
-          ...baseOptions.scales?.y,
-          ticks: {
-            callback: (value: number) => formatNumber(value),
-            font: { size: 11 }
-          },
-          title: {
-            display: true,
-            text: 'Volume'
-          }
-        }
-      },
-      plugins: {
-        ...baseOptions.plugins,
-        tooltip: {
-          callbacks: {
-            label: (context: any) => `Volume: ${formatNumber(context.raw)}`
-          }
-        }
-      }
-    }
-  }
-
-  return baseOptions
+  return selectedDataType.value === 'volume' 
+    ? createVolumeChartOptions(baseOptions) as ChartOptions<'line'>
+    : baseOptions as ChartOptions<'line'>
 })
 </script>
 
 <template>
   <div class="bg-white rounded-lg shadow-md p-4 w-full">
+    <div class="flex text-sm font-semibold flex-col sm:flex-row justify-between items-center gap-4">
+      <p class="ml-8">Select the time range</p>
+      <p>Select either the price or volume of the stock</p>
+    </div>
     <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
       <TimeRangeSelector
         :selected-range="selectedRange"
         @range-selected="handleRangeChange"
       />
       <ChartDataSelector
+        class="mr-16"
         :selected-type="selectedDataType"
         @data-type-selected="selectedDataType = $event"
       />
@@ -131,7 +110,7 @@ const chartOptions = computed(() => {
     <div class="h-[300px] sm:h-[400px] md:h-[500px] w-full">
       <Line
         :data="chartData"
-        :option="chartOptions"
+        :options="chartOptions"
       />
     </div>
   </div>

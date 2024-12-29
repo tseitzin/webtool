@@ -1,30 +1,56 @@
-import type { ChartOptions } from 'chart.js'
-import type { ChartDataType } from '../types/chart'
-import { createXAxisConfig, createYAxisConfig } from './chartScales'
-import { createChartPlugins } from './chartPlugins'
+import { formatCurrency } from './formatters'
+import type { ChartOptions } from './chartTypes'
 
-export const createChartOptions = (
-  symbol: string,
-  dataType: ChartDataType = 'price'
-): ChartOptions<'line'> => {
-  const xAxis = createXAxisConfig()
-  const yAxis = createYAxisConfig(dataType)
-
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: createChartPlugins(symbol, dataType),
-    scales: {
-      x: xAxis,
-      y: yAxis
+export const createChartOptions = (symbol: string): ChartOptions => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      align: 'center',
+      labels: {
+        boxWidth: 20,
+        padding: 15,
+        font: { size: 12 }
+      }
     },
-    layout: {
-      padding: {
-        left: 15,
-        right: 15,
-        top: 20,
-        bottom: 15
+    title: {
+      display: true,
+      text: `Historical Data for ${symbol}`,
+      font: {
+        size: 18,
+        weight: 'bold',
+        family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif"
+      },
+      padding: { top: 10, bottom: 20 }
+    },
+    tooltip: {
+      callbacks: {
+        label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw as number)}`
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks: {
+        maxRotation: 45,
+        minRotation: 45,
+        font: { size: 11 }
+      },
+      grid: {
+        display: false
+      }
+    },
+    y: {
+      beginAtZero: false,
+      ticks: {
+        callback: (value) => formatCurrency(value),
+        font: { size: 11 }
+      },
+      grid: {
+        display: true,
+        color: 'rgba(0, 0, 0, 0.1)'
       }
     }
   }
-}
+})
