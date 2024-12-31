@@ -11,6 +11,7 @@ public class User
     public DateTime? ResetTokenExpiry { get; set; }
     public DateTime? CreatedDate { get; set; }
     public DateTime? LastLoginDate { get; set; }
+    public DateTime? PreviousLoginDate { get; set; }
     public int NumberOfLogins { get; set; }
     public int FailedLogins { get; set; }
 

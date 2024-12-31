@@ -77,6 +77,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Invalid credentials");
         }
 
+        user.PreviousLoginDate = user.LastLoginDate;
         user.LastLoginDate = DateTime.UtcNow;
         user.NumberOfLogins++;
         await _context.SaveChangesAsync();
@@ -88,7 +89,13 @@ public class AuthService : IAuthService
             Token = GenerateJwtToken(user),
             Email = user.Email,
             Name = user.Name,
-            IsAdmin = user.IsAdmin
+            IsAdmin = user.IsAdmin,
+            LastLoginDate = user.LastLoginDate, // Use ISO 8601 format
+            PreviousLoginDate = user.PreviousLoginDate,
+            CreatedDate = user.CreatedDate,
+            NumberOfLogins = user.NumberOfLogins,
+            FailedLogins = user.FailedLogins
+
         };
     }
 

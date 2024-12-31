@@ -14,6 +14,7 @@ export class AuthService {
       name: data.name,
       isAdmin: data.isAdmin,
       lastLoginDate: data.lastLoginDate,
+      previousLoginDate: data.previousLoginDate,
       createdDate: data.createdDate,
       numberOfLogins: data.numberOfLogins,
       failedLogins: data.failedLogins
@@ -32,6 +33,7 @@ export class AuthService {
       name: data.name,
       isAdmin: data.isAdmin,
       lastLoginDate: data.lastLoginDate,
+      previousLoginDate: data.previousLoginDate,
       createdDate: data.createdDate,
       numberOfLogins: data.numberOfLogins,
       failedLogins: data.failedLogins

@@ -130,7 +130,7 @@ if (auth.user?.isAdmin) {
           <div class="bg-gray-50 p-4 rounded-lg">
             <h3 class="text-sm text-gray-500">Last Login</h3>
             <p class="text-sm font-medium text-gray-800">
-              {{ formatDate(auth.user?.lastLoginDate) }}
+              {{ formatDate(auth.user?.previousLoginDate) }}
             </p>
           </div>
         </div>

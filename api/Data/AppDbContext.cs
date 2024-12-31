@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
             entity.Property(u => u.ResetTokenExpiry).HasColumnName("reset_token_expiry");
             entity.Property(u => u.CreatedDate).HasColumnName("created_date");
             entity.Property(u => u.LastLoginDate).HasColumnName("last_login_date");
+            entity.Property(u => u.PreviousLoginDate).HasColumnName("previous_login_date");
             entity.Property(u => u.FailedLogins).HasColumnName("failed_logins");
         });
 

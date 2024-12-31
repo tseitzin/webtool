@@ -31,6 +31,7 @@ public class AuthController : ControllerBase
                 IsAdmin = response.IsAdmin,
                 LastLoginDate = response.LastLoginDate,
                 CreatedDate = response.CreatedDate,
+                PreviousLoginDate = response.PreviousLoginDate,
                 NumberOfLogins = response.NumberOfLogins,
                 FailedLogins = response.FailedLogins
             });
@@ -55,6 +56,7 @@ public class AuthController : ControllerBase
                 IsAdmin = response.IsAdmin,
                 LastLoginDate = response.LastLoginDate,
                 CreatedDate = response.CreatedDate,
+                PreviousLoginDate = response.PreviousLoginDate,
                 NumberOfLogins = response.NumberOfLogins,
                 FailedLogins = response.FailedLogins
             });

@@ -64,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
       token: authResponse.token,
       isAdmin: authResponse.isAdmin,
       lastLoginDate: authResponse.lastLoginDate,
+      previousLoginDate: authResponse.previousLoginDate,
       createdDate: authResponse.createdDate,
       numberOfLogins: authResponse.numberOfLogins,
       failedLogins: authResponse.failedLogins
