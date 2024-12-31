@@ -11,6 +11,8 @@ lerna-debug.log*
 publish/
 wwwroot/
 obj/
+coverage/
+src/tests/
 node_modules
 api/obj/Debug/
 api/bin/

@@ -49,19 +49,19 @@ const closeMenu = () => {
           </router-link>
           <router-link 
             v-if="auth.isAuthenticated"
-            to="/crypto-dashboard" 
-            class="navbar_link"
-            active-class="active"
-          >
-            Crypto Dashboard
-          </router-link>
-          <router-link 
-            v-if="auth.isAuthenticated"
             to="/search-area" 
             class="navbar_link"
             active-class="active"
           >
             Stock Search
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/crypto-dashboard" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Crypto Dashboard
           </router-link>
           <router-link 
             v-if="auth.isAuthenticated"

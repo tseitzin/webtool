@@ -37,16 +37,16 @@ const navigationTiles = ref([
     route: '/stock-dashboard'
   },
   {
-    title: 'Crypto Dashboard',
-    description: 'Track your cryptocurrency portfolio with live price updates and market data.',
-    icon: '/dashboard-crypto.svg',
-    route: '/crypto-dashboard'
-  },
-  {
     title: 'Stock Search',
     description: 'Search for stocks, view detailed information, and add them to your watchlist.',
     icon: '/search-stock.svg',
     route: '/search-area'
+  },
+  {
+    title: 'Crypto Dashboard',
+    description: 'Track your cryptocurrency portfolio with live price updates and market data.',
+    icon: '/dashboard-crypto.svg',
+    route: '/crypto-dashboard'
   },
   {
     title: 'Crypto Search',
