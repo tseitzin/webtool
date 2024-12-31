@@ -8,7 +8,16 @@ export class AuthService {
       password,
       name: ''
     })
-    return data
+    return {
+      token: data.token,
+      email: data.email,
+      name: data.name,
+      isAdmin: data.isAdmin,
+      lastLoginDate: data.lastLoginDate,
+      createdDate: data.createdDate,
+      numberOfLogins: data.numberOfLogins,
+      failedLogins: data.failedLogins
+    }
   }
 
   async register(email: string, password: string, name: string): Promise<AuthResponse> {
@@ -17,6 +26,15 @@ export class AuthService {
       password,
       name
     })
-    return data
+    return {
+      token: data.token,
+      email: data.email,
+      name: data.name,
+      isAdmin: data.isAdmin,
+      lastLoginDate: data.lastLoginDate,
+      createdDate: data.createdDate,
+      numberOfLogins: data.numberOfLogins,
+      failedLogins: data.failedLogins
+    }
   }
 }

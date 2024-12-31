@@ -33,11 +33,27 @@ const closeMenu = () => {
           </router-link>
           <router-link 
             v-if="auth.isAuthenticated"
-            to="/dashboard" 
+            to="/landing" 
             class="navbar_link"
             active-class="active"
           >
-            Dashboard
+            Home
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/stock-dashboard" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Stock Dashboard
+          </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/crypto-dashboard" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Crypto Dashboard
           </router-link>
           <router-link 
             v-if="auth.isAuthenticated"
@@ -161,13 +177,30 @@ const closeMenu = () => {
               Home
             </router-link>
             <router-link 
+            v-if="auth.isAuthenticated"
+            to="/landing" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Home
+          </router-link>
+            <router-link 
               v-if="auth.isAuthenticated"
-              to="/dashboard" 
+              to="/stock-dashboard" 
               class="mobile_link"
               active-class="active"
               @click="closeMenu"
             >
-              Dashboard
+              Stock Dashboard
+            </router-link>
+            <router-link 
+              v-if="auth.isAuthenticated"
+              to="/crypto-dashboard" 
+              class="mobile_link"
+              active-class="active"
+              @click="closeMenu"
+            >
+              Crypto Dashboard
             </router-link>
             <router-link 
               v-if="auth.isAuthenticated"

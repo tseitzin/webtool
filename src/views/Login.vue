@@ -21,7 +21,7 @@ onMounted(() => {
 const handleSubmit = async () => {
   try {
     await auth.login(email.value, password.value)
-    router.push('/dashboard')
+    router.push('/landing')
   } catch (e) {
     error.value = 'Invalid credentials'
   }

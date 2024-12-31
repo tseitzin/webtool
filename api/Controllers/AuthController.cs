@@ -23,7 +23,17 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.RegisterAsync(request);
-            return Ok(response);
+            return Ok(new AuthResponse
+            {
+                Token = response.Token,
+                Email = response.Email,
+                Name = response.Name,
+                IsAdmin = response.IsAdmin,
+                LastLoginDate = response.LastLoginDate,
+                CreatedDate = response.CreatedDate,
+                NumberOfLogins = response.NumberOfLogins,
+                FailedLogins = response.FailedLogins
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -37,7 +47,17 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.LoginAsync(request);
-            return Ok(response);
+            return Ok(new AuthResponse
+            {
+                Token = response.Token,
+                Email = response.Email,
+                Name = response.Name,
+                IsAdmin = response.IsAdmin,
+                LastLoginDate = response.LastLoginDate,
+                CreatedDate = response.CreatedDate,
+                NumberOfLogins = response.NumberOfLogins,
+                FailedLogins = response.FailedLogins
+            });
         }
         catch (InvalidOperationException)
         {

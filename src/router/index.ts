@@ -11,8 +11,11 @@ import SearchArea from '../views/SearchArea.vue'
 import ResearchStock from '../views/ResearchStock.vue'
 import { useAuthStore } from '../stores/auth'
 import AccessDenied from '../views/AccessDenied.vue'
-import Dashboard from '../views/Dashboard.vue'
+import StockDashboard from '../views/StockDashboard.vue'
+import CryptoDashboard from '../views/CryptoDashboard.vue'
 import { storeToRefs } from 'pinia'
+import Landing from '../views/Landing.vue'
+import CryptoSearch from '../views/CryptoSearch.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -23,6 +26,12 @@ const router = createRouter({
       component: Home,
     },
     {
+      path: '/landing',
+      name: 'landing',
+      component: Landing,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/search-area',
       name: 'search-area',
       component: SearchArea,
@@ -31,7 +40,19 @@ const router = createRouter({
     {
       path: '/crypto',
       name: 'crypto',
-      component: () => import('../views/CryptoSearch.vue'),
+      component: CryptoSearch,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/stock-dashboard',
+      name: 'stock-dashboard',
+      component: StockDashboard,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/crypto-dashboard',
+      name: 'crypto-dashboard',
+      component: CryptoDashboard,
       meta: { requiresAuth: true }
     },
     {
@@ -56,12 +77,6 @@ const router = createRouter({
       path: '/account',
       name: 'account',
       component: Account,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: Dashboard,
       meta: { requiresAuth: true }
     },
     {
