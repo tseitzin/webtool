@@ -32,25 +32,34 @@ const navigateToResearch = (symbol: string) => {
 <template>
   <div class="mt-4">
     <div class="flex justify-between items-center mb-1">
-      <h3 class="text-lg font-semibold">Company: {{ stock.companyName }}</h3>
-      <h3 class="text-lg font-semibold">Stock Symbol: {{ stock.symbol }}</h3>
-      
-      <button
-        v-if="!isFavorited"
-        @click="emit('toggleFavorite', stock.symbol)"
-        class="px-1 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-      >
-        Add to Saved Stocks
-      </button>
-      <button
-        v-else
-        @click="emit('toggleFavorite', stock.symbol)"
-        class="px-1 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
-      >
-        Remove Saved Stock
-      </button>
-      
-    </div>
+          <div>
+            <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
+            <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              @click="navigateToResearch(stock.symbol)"
+              class="px-4 py-2 bg-green-600 text-sm text-white rounded-lg hover:bg-green-800 transition-colors"
+            >
+              Research
+            </button>
+            <button
+              v-if="!isFavorited"
+              @click="emit('toggleFavorite', stock.symbol)"
+              class="px-1 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Add to Saved Stocks
+            </button>
+            <button
+              v-else
+              @click="emit('toggleFavorite', stock.symbol)"
+              class="px-1 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Remove Saved Stock
+            </button>
+          </div>
+        </div>
+    
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-gray-50 p-4 rounded-lg">

@@ -337,7 +337,10 @@ const navigateToResearch = (symbol: string) => {
   </div>
 
       <!-- Market Movers Section -->
-      <div v-if="marketMovers" class="mt-8 space-y-4">
+      <div class="flex flex-row justify-between items-center mt-6 mb-1">
+      <h2 class="text-xl sm:text-2xl font-bold">Market Movers</h2>
+    </div>
+      <div v-if="marketMovers" class="mt-1 space-y-4">
         <!-- Market Status Message -->
         <MarketStatusMessage 
           v-if="marketMovers.marketStatus"
@@ -348,7 +351,7 @@ const navigateToResearch = (symbol: string) => {
         <div v-if="marketMovers.lastUpdate" class="text-xs sm:text-sm text-gray-600">
           Last updated: {{ new Date(marketMovers.lastUpdate).toLocaleString() }}
         </div>
-        <div class="ml-2 font-semibold">
+        <div class="ml-2 sm:font-semibold">
           Click on any of the Gainers or Losers symbol name to learn more about that stock.
         </div>
 
