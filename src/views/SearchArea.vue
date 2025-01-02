@@ -13,6 +13,7 @@ import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { useSearchStore } from '../stores/search'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import api from '../api/axios'
+import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
 
 interface MarketSummary {
   totalVolume: number
@@ -33,6 +34,9 @@ const error = ref('')
 const loading = ref(false)
 const marketLoading = ref(false)
 const searchSymbol = ref(searchStore.lastSearchSymbol)
+const showPortfolioModal = ref(false)
+const selectedStockForPortfolio = ref<StockData | null>(null)
+
 
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
@@ -158,6 +162,50 @@ const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
 
+const fetchSavedStocks = async () => {
+  try {
+    const stocks = await stockService.getSavedStocks()
+    savedStocks.value = stocks
+    
+    // Start auto-refresh after initial fetch
+    searchAreaService.startAutoRefresh(stocks, (updatedStocks) => {
+      savedStocks.value = updatedStocks
+    })
+  } catch (e) {
+    console.error('Error fetching saved stocks:', e)
+  }
+}
+
+// const handleAddToPortfolio = async (data: { quantity: number, notes: string }) => {
+//   try {
+//     if (!selectedStockForPortfolio.value) return
+    
+//     await api.post('/portfolio', {
+//       symbol: selectedStockForPortfolio.value.symbol,
+//       quantity: data.quantity,
+//       purchasePrice: selectedStockForPortfolio.value.price,
+//       notes: data.notes
+//     })
+//     showPortfolioModal.value = false
+//     selectedStockForPortfolio.value = null
+//     // Show success message
+//   } catch (error) {
+//     console.error('Failed to add to portfolio:', error)
+//     // Show error message
+//   }
+// }
+
+const openPortfolioModal = (stock: StockData) => {
+  selectedStockForPortfolio.value = stock
+  showPortfolioModal.value = true
+}
+
+const closePortfolioModal = () => {
+  showPortfolioModal.value = false
+  selectedStockForPortfolio.value = null
+}
+
+
 </script>
 
 <template>
@@ -273,6 +321,12 @@ const navigateToResearch = (symbol: string) => {
               class="px-4 py-2 bg-green-600 text-sm text-white rounded-lg hover:bg-green-800 transition-colors"
             >
               Research
+            </button>
+            <button
+              @click="openPortfolioModal(stock)"
+              class="px-4 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-800 transition-colors"
+            >
+              Update Portfolio
             </button>
             <button
               @click="handleRemoveStock(stock.symbol)"
@@ -443,6 +497,15 @@ const navigateToResearch = (symbol: string) => {
         message="Are you sure you want to remove this stock from your watchlist?"
         @confirm="handleConfirmRemoval"
         @cancel="cancelRemoval"
+      />
+
+      <AddToPortfolioModal
+        v-if="showPortfolioModal && selectedStockForPortfolio"
+        :is-open="showPortfolioModal"
+        :symbol="selectedStockForPortfolio.symbol"
+        :price="selectedStockForPortfolio.price"
+        @close="closePortfolioModal"
+        @success="fetchSavedStocks"
       />
 
     </div>

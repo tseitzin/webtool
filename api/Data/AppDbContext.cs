@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public required DbSet<UserSavedStock> UserSavedStocks { get; set; }
     public required DbSet<UserSavedCrypto> UserSavedCryptos { get; set; }
     public required DbSet<MarketMover> MarketMovers { get; set; }
+    public required DbSet<Portfolio> Portfolios { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +55,26 @@ public class AppDbContext : DbContext
             entity.Property(u => u.PreviousLoginDate).HasColumnName("previous_login_date");
             entity.Property(u => u.FailedLogins).HasColumnName("failed_logins");
         });
+
+        modelBuilder.Entity<Portfolio>(entity =>
+      {
+      entity.ToTable("portfolios");
+      
+      entity.HasIndex(p => new { p.UserId, p.Symbol });
+      
+      entity.Property(p => p.Symbol)
+            .HasMaxLength(10)
+            .IsRequired();
+            
+      entity.Property(p => p.Notes)
+            .HasMaxLength(500);
+            
+      entity.HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+      });
+
 
         // Configure AuditLog entity
         modelBuilder.Entity<AuditLog>(entity =>

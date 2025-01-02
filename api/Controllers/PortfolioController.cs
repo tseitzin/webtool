@@ -1,3 +1,4 @@
+// api/Controllers/PortfolioController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,46 +21,37 @@ public class PortfolioController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserOwnedStock>>> GetPortfolio()
+    public async Task<ActionResult<IEnumerable<Portfolio>>> GetPortfolio()
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var portfolio = await _context.UserOwnedStocks
-            .Where(o => o.UserId == userId)
-            .OrderBy(o => o.Symbol)
+            .Where(p => p.UserId == userId)
+            .OrderBy(p => p.Symbol)
             .ToListAsync();
 
         return Ok(portfolio);
     }
 
-    [HttpPost]
-    public async Task<ActionResult<UserOwnedStock>> AddPosition([FromBody] AddPositionRequest request)
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    // [HttpPost]
+    // public async Task<ActionResult<Portfolio>> AddToPortfolio([FromBody] AddToPortfolioRequest request)
+    // {
+    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         
-        // Check if stock exists
-        var stockExists = await _context.StockData
-            .AnyAsync(s => s.Symbol == request.Symbol.ToUpper());
+    //     var portfolio = new Portfolio
+    //     {
+    //         UserId = userId,
+    //         Symbol = request.Symbol.ToUpper(),
+    //         Quantity = request.Quantity,
+    //         PurchasePrice = request.PurchasePrice,
+    //         PurchaseDate = DateTime.UtcNow,
+    //         Notes = request.Notes
+    //     };
 
-        if (!stockExists)
-        {
-            return NotFound("Stock not found");
-        }
+    //     _context.Portfolios.Add(portfolio);
+    //     await _context.SaveChangesAsync();
 
-        var position = new UserOwnedStock
-        {
-            UserId = userId,
-            Symbol = request.Symbol.ToUpper(),
-            Quantity = request.Quantity,
-            PurchasePrice = request.PurchasePrice,
-            PurchaseDate = request.PurchaseDate.ToUniversalTime(),
-            Notes = request.Notes
-        };
-
-        _context.UserOwnedStocks.Add(position);
-        await _context.SaveChangesAsync();
-
-        return Ok(position);
-    }
+    //     return Ok(portfolio);
+    // }
 
     [HttpPost("{id}/sell")]
     public async Task<ActionResult<UserOwnedStock>> SellPosition(int id, [FromBody] SellPositionRequest request)
@@ -89,6 +81,7 @@ public class PortfolioController : ControllerBase
         return Ok(position);
     }
 
+    
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePosition(int id, [FromBody] UpdatePositionRequest request)
     {
@@ -101,28 +94,75 @@ public class PortfolioController : ControllerBase
             return NotFound();
         }
 
+        // Validate quantity
+        if (request.Quantity < 0)
+        {
+            return BadRequest("Quantity cannot be negative");
+        }
+
+        // Update position
         position.Quantity = request.Quantity;
-        position.Notes = request.Notes;
+        
+        // Update notes if provided
+        if (request.Notes != null)
+        {
+            position.Notes = request.Notes;
+        }
 
         await _context.SaveChangesAsync();
         return Ok(position);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> RemovePosition(int id)
+    [HttpPost]
+    public async Task<ActionResult<UserOwnedStock>> AddPosition([FromBody] AddPositionRequest request)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var position = await _context.UserOwnedStocks
-            .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+        
+        // Check if user already owns this stock
+        var existingPosition = await _context.UserOwnedStocks
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Symbol == request.Symbol.ToUpper());
 
-        if (position == null)
+        Console.WriteLine("Existing position: " + existingPosition?.UserId);
+        if (existingPosition != null)
         {
-            return NotFound();
+            Console.WriteLine("Existing position quantity =" + existingPosition.Quantity);
+            // Update existing position
+             existingPosition.Quantity += request.Quantity;
+            // Optionally update average purchase price
+            existingPosition.PurchasePrice = 
+                ((existingPosition.Quantity - request.Quantity) * existingPosition.PurchasePrice + 
+                request.Quantity * request.PurchasePrice) / existingPosition.Quantity;
+            existingPosition.Notes = request.Notes ?? existingPosition.Notes;
+            
+            await _context.SaveChangesAsync();
+            return Ok(existingPosition);
+        }
+        else
+        {
+            // Create new position
+            var position = new UserOwnedStock
+            {
+                UserId = userId,
+                Symbol = request.Symbol.ToUpper(),
+                Quantity = request.Quantity,
+                PurchasePrice = request.PurchasePrice,
+                PurchaseDate = request.PurchaseDate.ToUniversalTime(),
+                Notes = request.Notes
+            };
+            _context.UserOwnedStocks.Add(position);
         }
 
-        _context.UserOwnedStocks.Remove(position);
         await _context.SaveChangesAsync();
-
-        return NoContent();
+        return Ok();
     }
+
+
+}
+
+public class AddToPortfolioRequest
+{
+    public required string Symbol { get; set; }
+    public required decimal Quantity { get; set; }
+    public required decimal PurchasePrice { get; set; }
+    public string? Notes { get; set; }
 }

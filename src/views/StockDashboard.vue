@@ -7,11 +7,15 @@ import { dashboardService } from '../services/dashboardService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { StockData } from '../types/polygon'
 import { useStockRemoval } from '../composables/useStockRemoval'
+import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
+// import api from '../api/axios'
 
 const router = useRouter()
 const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
+const showPortfolioModal = ref(false)
+const selectedStockForPortfolio = ref<StockData | null>(null)
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -46,6 +50,12 @@ const handleRemoveStock = (symbol: string) => {
   confirmRemoval(symbol)
 }
 
+const handlePortfolioSuccess = async () => {
+  // Refresh data after successful portfolio update
+  await fetchSavedStocks()
+}
+
+
 const handleConfirmRemoval = async () => {
   if (stockToRemove.value) {
     await removeSavedStock(stockToRemove.value)
@@ -73,6 +83,37 @@ const navigateToSearch = () => {
 const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
+
+// const handleAddToPortfolio = async (data: { quantity: number, notes: string }) => {
+//   try {
+//     if (!selectedStockForPortfolio.value) return
+    
+//     await api.post('/portfolio', {
+//       symbol: selectedStockForPortfolio.value?.symbol,
+//       quantity: data.quantity,
+//       purchasePrice: selectedStockForPortfolio.value?.price,
+//       notes: data.notes
+//     })
+//     showPortfolioModal.value = false
+//     selectedStockForPortfolio.value = null
+//     // Show success message using your toast system
+//   } catch (error) {
+//     console.error('Failed to add to portfolio:', error)
+//     // Show error message
+//   }
+// }
+
+// Add methods:
+const openPortfolioModal = (stock: StockData) => {
+  selectedStockForPortfolio.value = stock
+  showPortfolioModal.value = true
+}
+
+const closePortfolioModal = () => {
+  showPortfolioModal.value = false
+  selectedStockForPortfolio.value = null
+}
+
 </script>
 
 <template>
@@ -126,6 +167,12 @@ const navigateToResearch = (symbol: string) => {
                   Research
                 </button>
                 <button
+                  @click="openPortfolioModal(stock)"
+                  class="px-4 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-800 transition-colors"
+                >
+                  Update Portfolio
+                </button>
+                <button
                   @click="handleRemoveStock(stock.symbol)"
                   class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
@@ -173,6 +220,15 @@ const navigateToResearch = (symbol: string) => {
             </div>
           </div>
         </div>
+
+        <AddToPortfolioModal
+          v-if="selectedStockForPortfolio"
+          :is-open="showPortfolioModal"
+          :symbol="selectedStockForPortfolio.symbol"
+          :price="selectedStockForPortfolio.price"
+          @close="closePortfolioModal"
+          @success="handlePortfolioSuccess"
+        />
   
         <ConfirmationModal
           :is-open="showRemoveModal"

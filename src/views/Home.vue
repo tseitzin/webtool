@@ -4,14 +4,19 @@
     <div class="container mx-auto px-4 py-12">
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Welcome to the Stock Navigator
+          Welcome to the Financial Navigator
         </h1>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Join to explore various stocks, their price and any news related.
-        </p>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Feel free to join us and we hope that this helps you with building your financial portfolio.
-        </p>
+        <div class="text-xl text-gray-700 max-w-2xl mx-auto mb-3">
+          <p>
+            Join for free to explore the stock and cryptocurrency markets. 
+          </p>
+          <p>
+            Research current prices, historical data and any related news.
+          </p>
+          <p class="mt-3">
+            Feel free to join us and we hope that this helps you with building your financial portfolio.
+          </p>
+        </div>
         <div class="tiles-grid">
       <router-link 
         v-for="tile in navigationTiles" 
