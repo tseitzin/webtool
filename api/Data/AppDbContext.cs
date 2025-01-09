@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public required DbSet<UserSavedCrypto> UserSavedCryptos { get; set; }
     public required DbSet<MarketMover> MarketMovers { get; set; }
     public required DbSet<Portfolio> Portfolios { get; set; }
+    public required DbSet<Transaction> Transactions { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -235,6 +236,32 @@ public class AppDbContext : DbContext
            entity.Property(m => m.LastUpdated)
                  .HasColumnType("timestamp with time zone");
        });
+
+       modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.ToTable("transactions");
+
+            entity.HasIndex(t => t.UserId);
+            entity.HasIndex(t => t.StockSymbol);
+            entity.HasIndex(t => t.TransactionDate);
+
+            entity.Property(t => t.StockSymbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(t => t.TransactionType)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(t => t.TransactionDate)
+                  .HasColumnName("transaction_date")
+                  .HasColumnType("timestamp with time zone");
+
+            entity.HasOne(t => t.User)
+                  .WithMany()
+                  .HasForeignKey(t => t.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<UserSavedCrypto>(entity =>
         {

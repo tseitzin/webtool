@@ -156,6 +156,39 @@ public class PortfolioController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("transactions")]
+    public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions([FromBody] AddPositionRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var transactions = await _context.Transactions
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.TransactionDate)
+            .ToListAsync();
+
+        return Ok(transactions);
+    }
+
+    [HttpPost("/portfolio")]
+    public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+        var savedTransaction = new Transaction
+        {
+            UserId = userId,
+            StockSymbol = request.StockSymbol,
+            TransactionType = request.TransactionType,
+            TransactionDate = DateTime.Now,
+            Quantity = request.Quantity,
+            Price = request.Price,
+        };
+
+        _context.Add(savedTransaction);
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
 
 }
 
