@@ -16,6 +16,7 @@ import CryptoDashboard from '../views/CryptoDashboard.vue'
 import { storeToRefs } from 'pinia'
 import Landing from '../views/Landing.vue'
 import CryptoSearch from '../views/CryptoSearch.vue'
+import PortfolioSummary from '../views/PortfolioSummary.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -66,6 +67,12 @@ const router = createRouter({
       name: 'users',
       component: Users,
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/portfolio-summary',
+      name: 'portfolio-summary',
+      component: PortfolioSummary,
+      meta: { requiresAuth: true }
     },
     {
       path: '/audit-logs',

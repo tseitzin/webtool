@@ -13,7 +13,11 @@ export interface PortfolioStock {
     userId: number
     symbol: string
     quantity: number
-    purchasePrice: number
+    averagePurchasePrice: number
+    totalCost: number
+    currentValue: number
+    gainLoss: number
+    gainLossPercent: number
     purchaseDate: string
     notes?: string
   }

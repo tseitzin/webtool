@@ -18,6 +18,15 @@ public class UserOwnedStock
     
     [Required]
     public decimal PurchasePrice { get; set; }
+
+    [Required]
+    public decimal AveragePurchasePrice { get; set; }
+
+    [Required]
+    public decimal TotalCost { get; set; }
+
+    [Required]
+    public decimal CurrentValue { get; set; }
     
     public DateTime PurchaseDate { get; set; }
     
