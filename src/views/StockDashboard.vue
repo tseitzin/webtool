@@ -8,7 +8,9 @@ import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters
 import type { StockData } from '../types/polygon'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
-// import api from '../api/axios'
+import { portfolioService } from '../services/portfolioService'
+import type { UserOwnedStock } from '../types/portfolio'
+
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -16,6 +18,7 @@ const savedStocks = ref<StockData[]>([])
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 const showPortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
+const ownedStocks = ref<UserOwnedStock[]>([])
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -34,15 +37,30 @@ watchEffect((onCleanup) => {
 
 const fetchSavedStocks = async () => {
   try {
-    const stocks = await stockService.getSavedStocks()
+    const [stocks, owned] = await Promise.all([
+      stockService.getSavedStocks(),
+      portfolioService.getPortfolio()
+    ])
     savedStocks.value = stocks
+    ownedStocks.value = owned
     
     // Start auto-refresh after initial fetch
     dashboardService.startAutoRefresh(stocks, (updatedStocks) => {
       savedStocks.value = updatedStocks
     })
   } catch (e) {
-    console.error('Error fetching saved stocks:', e)
+    console.error('Error fetching stocks:', e)
+  }
+}
+
+// Add helper function to get ownership info
+const getOwnershipInfo = (symbol: string) => {
+  const owned = ownedStocks.value.find(stock => stock.symbol === symbol)
+  if (!owned) return null
+  
+  return {
+    shares: owned.quantity,
+    value: owned.quantity * owned.averagePurchasePrice
   }
 }
 
@@ -84,26 +102,6 @@ const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
 
-// const handleAddToPortfolio = async (data: { quantity: number, notes: string }) => {
-//   try {
-//     if (!selectedStockForPortfolio.value) return
-    
-//     await api.post('/portfolio', {
-//       symbol: selectedStockForPortfolio.value?.symbol,
-//       quantity: data.quantity,
-//       purchasePrice: selectedStockForPortfolio.value?.price,
-//       notes: data.notes
-//     })
-//     showPortfolioModal.value = false
-//     selectedStockForPortfolio.value = null
-//     // Show success message using your toast system
-//   } catch (error) {
-//     console.error('Failed to add to portfolio:', error)
-//     // Show error message
-//   }
-// }
-
-// Add methods:
 const openPortfolioModal = (stock: StockData) => {
   selectedStockForPortfolio.value = stock
   showPortfolioModal.value = true
@@ -217,6 +215,32 @@ const closePortfolioModal = () => {
                 <p class="text-sm text-gray-500">Low</p>
                 <p class="text-lg font-semibold">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</p>
               </div>
+            </div>
+
+            <div 
+              v-if="getOwnershipInfo(stock.symbol)"
+              class="mt-4 bg-blue-50 p-3 rounded-lg"
+            >
+              <div class="flex">
+                <div>
+                  <span class="font-medium text-blue-800">Number in Portfolio:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
+                  </span>
+                </div>
+                <div>
+                  <span class="font-medium text-blue-800 ml-6">Total Value:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div 
+              v-else 
+              class="mt-4 bg-gray-50 p-3 rounded-lg"
+            >
+              <p class="font-semibold text-gray-600">Not currently in portfolio</p>
             </div>
           </div>
         </div>

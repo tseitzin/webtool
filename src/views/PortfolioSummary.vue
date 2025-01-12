@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import api from '../api/axios'
 import type { UserOwnedStock } from '../types/portfolio'
 import PortfolioSummaryTable from '../components/PortfolioSummaryTable.vue'
-import { formatCurrency } from '../utils/formatters'
+//import { formatCurrency } from '../utils/formatters'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -60,13 +60,13 @@ const calculateTotalValue = () => {
       <!-- Portfolio Content -->
       <div v-else>
         <!-- Portfolio Value Summary -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 class="text-xl font-semibold mb-4">Portfolio Total</h2>
           <div class="text-2xl font-bold text-indigo-600">
             {{ formatCurrency(totalValue) }}
           </div>
           <p class="text-gray-600">Total Portfolio Value</p>
-        </div>
+        </div> -->
 
         <div>
             <h2 class="text-xl font-semibold mb-2">Stock Portfolio</h2>
