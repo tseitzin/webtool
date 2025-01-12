@@ -14,6 +14,7 @@ import { useSearchStore } from '../stores/search'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import api from '../api/axios'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
+import { useLogger } from '../composables/useLogger'
 
 interface MarketSummary {
   totalVolume: number
@@ -36,6 +37,7 @@ const marketLoading = ref(false)
 const searchSymbol = ref(searchStore.lastSearchSymbol)
 const showPortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
+const logger = useLogger()
 
 
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
@@ -118,10 +120,24 @@ const searchStock = async () => {
     const stock = await polygonService.getStockSnapshot(currentStock)
     selectedStock.value = stock
     searchStore.setLastSearchedStock(stock)
+
+    await logger.info('Stock search result returned', {
+        symbol: selectedStock.value.symbol,
+        price: selectedStock.value.price,
+        companyName: selectedStock.value.companyName,
+        volume: selectedStock.value.volume,
+        dateTime: new Date().toISOString()
+      })
   } catch (e: any) {
     error.value = currentStock + ' is not a valid symbol or is currently unavailable and cannot be used in your analysis.'
     selectedStock.value = null
     searchStore.clearSearch()
+
+    await logger.error(currentStock + ' is not a valid symbol or is currently unavailable and cannot be used in your analysis.', e as Error, {
+      symbol: currentStock,
+      dateTime: new Date().toISOString()
+    })
+
   } finally {
     loading.value = false
   }
@@ -141,12 +157,29 @@ const toggleSavedStock = async (symbol: string) => {
     if (isCurrentlySaved) {
       await stockService.removeSavedStock(symbol)
       savedStocks.value = savedStocks.value.filter(s => s.symbol !== symbol)
+
+      await logger.info('Stock removed from watchlist', {
+        symbol: symbol,
+        dateTime: new Date().toISOString()
+
+      })
     } else if (selectedStock.value) {
       await stockService.saveStock(selectedStock.value)
       savedStocks.value = [...savedStocks.value, selectedStock.value]
+
+      await logger.info('Stock added to watchlist', {
+        symbol: symbol,
+        dateTime: new Date().toISOString()
+
+      })
     }
   } catch (e: any) {
     error.value = 'Failed to update saved stocks'
+
+    await logger.error('Failed to update saved stocks', e as Error, {
+      symbol: savedStocks.value,
+      dateTime: new Date().toISOString()
+    })
   }
 }
 

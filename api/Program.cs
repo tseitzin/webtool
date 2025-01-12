@@ -75,7 +75,10 @@ builder.Services.AddRateLimiter(options =>
 // Add Application Insights only in production
 if (builder.Environment.IsProduction())
 {
-    builder.Services.AddApplicationInsightsTelemetry();
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+    });    
 }
 
 // Add services to the container.

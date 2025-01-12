@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logService } from '../services/logService';
 
 const baseURL = import.meta.env.PROD 
   ? 'https://stock-navigator.azurewebsites.net/api'
@@ -44,11 +45,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    logService.error('API request failed', error, {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText
+    })
+
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('token')
+      window.location.href = '/login'
     }
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
 );
 

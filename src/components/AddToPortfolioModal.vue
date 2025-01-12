@@ -3,6 +3,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import api from '../api/axios'
 import { formatCurrency, formatNumber } from '../utils/formatters'
+import { useLogger } from '../composables/useLogger';
 
 const props = defineProps<{
   isOpen: boolean
@@ -26,6 +27,7 @@ const showSellConfirmation = ref(false)
 const totalSaleAmount = computed(() => sellQuantity.value * props.price)
 const showBuyConfirmation = ref(false)
 const totalPurchaseAmount = computed(() => quantity.value * props.price)
+const logger = useLogger()
 
 onMounted(async () => {
   await fetchCurrentPosition()
@@ -68,6 +70,17 @@ const confirmBuy = async () => {
         quantity: currentlyOwned.value + quantity.value,
         notes: notes.value
       })
+
+      await logger.info('Stock position increased', {
+        action: 'buy',
+        symbol: props.symbol,
+        quantity: quantity.value,
+        price: props.price,
+        totalCost: quantity.value * props.price,
+        newTotal: currentlyOwned.value + quantity.value
+      })
+
+
     } else {
       await api.post('/portfolio', {
         symbol: props.symbol,
@@ -76,6 +89,15 @@ const confirmBuy = async () => {
         purchaseDate: new Date().toISOString(),
         notes: notes.value
       })
+
+      await logger.info('New stock position opened', {
+        action: 'buy',
+        symbol: props.symbol,
+        quantity: quantity.value,
+        price: props.price,
+        totalCost: quantity.value * props.price
+      })
+
     }
     emit('success')
     // emit('close')
@@ -86,6 +108,12 @@ const confirmBuy = async () => {
     await fetchCurrentPosition()
   } catch (e: any) {
     error.value = e.response?.data?.message || 'Failed to add to portfolio'
+    await logger.error('Failed to add to portfolio', e as Error, {
+      symbol: props.symbol,
+      quantity: quantity.value,
+      price: props.price
+    })
+
   } finally {
     loading.value = false
     showBuyConfirmation.value = false
@@ -109,6 +137,17 @@ const confirmSell = async () => {
     await api.post(`/portfolio/${existingPositionId.value}/sell`, {
       quantity: sellQuantity.value
     })
+
+    await logger.info('Stock position sold', {
+      action: 'sell',
+      symbol: props.symbol,
+      quantity: sellQuantity.value,
+      price: props.price,
+      totalReceived: sellQuantity.value * props.price,
+      remainingQuantity: currentlyOwned.value - sellQuantity.value
+    })
+
+
     emit('success')
     // emit('close')
     sellQuantity.value = 0
@@ -118,6 +157,13 @@ const confirmSell = async () => {
     await fetchCurrentPosition()
   } catch (e: any) {
     error.value = e.response?.data?.message || 'Failed to sell position'
+
+    await logger.error('Failed to sell position', e as Error, {
+      symbol: props.symbol,
+      quantity: sellQuantity.value,
+      price: props.price
+    })
+
   } finally {
     loading.value = false
     showSellConfirmation.value = false
