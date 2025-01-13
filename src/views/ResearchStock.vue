@@ -12,7 +12,10 @@ import { stockService } from '../services/stockService'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import type { TimeRange } from '../types/polygon'
 import StockPriceChart from '../components/StockPriceChart.vue'
-
+import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
+import { portfolioService } from '../services/portfolioService'
+import type { UserOwnedStock } from '../types/portfolio'
+import { formatCurrency } from '../utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,7 +30,9 @@ const isSaved = ref(false)
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 const historicalData = ref<HistoricalDataPoint[]>([])
 const selectedTimeRange = ref<TimeRange>('1M')
-
+const showPortfolioModal = ref(false)
+const selectedStockForPortfolio = ref<StockData | null>(null)
+const ownedStocks = ref<UserOwnedStock[]>([])
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -42,19 +47,21 @@ onMounted(async () => {
   }
 
   try {
-    const [details, news, stock, related, historical] = await Promise.all([
+    const [details, news, stock, related, historical, owned] = await Promise.all([
       polygonService.getCompanyDetails(symbol),
       polygonService.getCompanyNews(symbol),
       polygonService.getStockSnapshot(symbol),
       polygonService.getRelatedCompanies(symbol),
-      polygonService.getHistoricalData(symbol, selectedTimeRange.value)
-      ])
+      polygonService.getHistoricalData(symbol, selectedTimeRange.value),
+      portfolioService.getPortfolio()
+    ])
 
     companyDetails.value = details
     newsArticles.value = news
     stockData.value = stock
     relatedCompanies.value = related
     historicalData.value = historical
+    ownedStocks.value = owned
 
     // Check if stock is already saved
     const savedStocks = await stockService.getSavedStocks()
@@ -79,7 +86,6 @@ const handleConfirmRemoval = async () => {
   }
 }
 
-// Add new function to handle time range changes
 const handleTimeRangeChange = async (range: string) => {
   try {
     if (companyDetails.value) {
@@ -132,6 +138,32 @@ const formatDate = (dateString: string): string => {
 const navigateToSearch = () => {
   router.push('/search-area')
 }
+
+const openPortfolioModal = (stock: StockData) => {
+  selectedStockForPortfolio.value = stock
+  showPortfolioModal.value = true
+}
+
+const closePortfolioModal = () => {
+  showPortfolioModal.value = false
+  selectedStockForPortfolio.value = null
+}
+
+const getOwnershipInfo = (symbol: string) => {
+  const owned = ownedStocks.value.find(stock => stock.symbol === symbol)
+  if (!owned) return null
+  
+  return {
+    shares: owned.quantity,
+    value: owned.quantity * owned.averagePurchasePrice
+  }
+}
+
+const handlePortfolioSuccess = async () => {
+  // Refresh data after successful portfolio update
+  const owned = await portfolioService.getPortfolio()
+  ownedStocks.value = owned
+}
 </script>
 
 <template>
@@ -169,6 +201,13 @@ const navigateToSearch = () => {
                 {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
               </button>
               <button
+                v-if="stockData"
+                @click="openPortfolioModal(stockData)"
+                class="px-4 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-800 transition-colors"
+              >
+                Update Portfolio
+              </button>
+              <button
                 @click="navigateToSearch"
                 class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto text-center"
               >
@@ -176,6 +215,36 @@ const navigateToSearch = () => {
               </button>
             </div>
           </div>
+
+          <div v-if="stockData">
+          <div 
+            v-if="getOwnershipInfo(stockData.symbol)"
+            class="bg-blue-50 p-4 rounded-lg mt-2"
+          >
+            <div class="flex flex-col sm:flex-row gap-4">
+              <div>
+                <span class="font-medium text-blue-800">Number in Portfolio:</span>
+                <span class="ml-2 text-blue-700">
+                  {{ formatNumber(getOwnershipInfo(stockData.symbol)?.shares || 0) }} shares
+                </span>
+              </div>
+              <div>
+                <span class="font-medium text-blue-800">Total Value:</span>
+                <span class="ml-2 text-blue-700">
+                  {{ formatCurrency((getOwnershipInfo(stockData.symbol)?.value || 0)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div 
+            v-else 
+            class="bg-gray-50 p-4 rounded-lg mt-2"
+          >
+            <p class="font-semibold text-gray-600">Not currently in portfolio</p>
+          </div>
+        </div>
+
+        
         </div>
 
         <!-- Stock Details Section -->
@@ -184,6 +253,8 @@ const navigateToSearch = () => {
           :stock="stockData"
         />
 
+        <!-- Portfolio Information -->
+        
         <StockPriceChart
           v-if="historicalData.length > 0"
           :data="historicalData"
@@ -281,6 +352,15 @@ const navigateToSearch = () => {
           message="Are you sure you want to remove this stock from your watchlist?"
           @confirm="handleConfirmRemoval"
           @cancel="cancelRemoval"
+        />
+
+        <AddToPortfolioModal
+          v-if="showPortfolioModal && selectedStockForPortfolio"
+          :is-open="showPortfolioModal"
+          :symbol="selectedStockForPortfolio.symbol"
+          :price="selectedStockForPortfolio.price"
+          @close="closePortfolioModal"
+          @success="handlePortfolioSuccess"
         />
         
       </div>
