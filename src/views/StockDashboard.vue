@@ -236,6 +236,7 @@ const closePortfolioModal = () => {
                 </div>
               </div>
             </div>
+            
             <div 
               v-else 
               class="mt-4 bg-gray-50 p-3 rounded-lg"

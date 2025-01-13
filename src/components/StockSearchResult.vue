@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import router from '../router';
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
+import type { UserOwnedStock } from '../types/portfolio'
+import { portfolioService } from '../services/portfolioService'
+import { onMounted, ref } from 'vue';
 
 defineProps<{
   stock: {
@@ -16,6 +19,12 @@ defineProps<{
   isFavorited: boolean
 }>()
 
+onMounted(async () => {
+  fetchSavedStocks()
+})
+
+const ownedStocks = ref<UserOwnedStock[]>([])
+
 const emit = defineEmits<{
   (e: 'toggleFavorite', symbol: string): void
 }>()
@@ -27,6 +36,27 @@ const formatChange = (change: number, changePercent: number): string => {
 const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
+
+const fetchSavedStocks = async () => {
+  try {
+    const owned = await portfolioService.getPortfolio()
+    ownedStocks.value = owned
+    
+  } catch (e) {
+    console.error('Error fetching stocks:', e)
+  }
+}
+
+// Add helper function to get ownership info
+const getOwnershipInfo = (symbol: string) => {
+    const owned = ownedStocks.value.find(stock => stock.symbol === symbol)
+    if (!owned) return null
+    
+    return {
+      shares: owned.quantity,
+      value: owned.quantity * owned.averagePurchasePrice
+    }
+  }
 </script>
 
 <template>
@@ -93,5 +123,31 @@ const navigateToResearch = (symbol: string) => {
         Research Stock
       </button>
     </div>
-  </div>
+
+    <div 
+          v-if="getOwnershipInfo(stock.symbol)"
+          class="mt-4 bg-blue-50 p-3 rounded-lg"
+        >
+          <div class="flex">
+            <div>
+              <span class="font-medium text-blue-800">Number in Portfolio:</span>
+              <span class="ml-2 text-blue-700">
+                {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
+              </span>
+            </div>
+            <div>
+              <span class="font-medium text-blue-800 ml-6">Total Value:</span>
+              <span class="ml-2 text-blue-700">
+                {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div 
+          v-else 
+          class="mt-4 bg-gray-50 p-3 rounded-lg"
+        >
+          <p class="font-semibold text-gray-600">Not currently in portfolio</p>
+        </div>
+        </div>
 </template>

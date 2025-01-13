@@ -15,6 +15,8 @@ import { useStockRemoval } from '../composables/useStockRemoval'
 import api from '../api/axios'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
 import { useLogger } from '../composables/useLogger'
+import type { UserOwnedStock } from '../types/portfolio'
+import { portfolioService } from '../services/portfolioService'
 
 interface MarketSummary {
   totalVolume: number
@@ -38,7 +40,7 @@ const searchSymbol = ref(searchStore.lastSearchSymbol)
 const showPortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
 const logger = useLogger()
-
+const ownedStocks = ref<UserOwnedStock[]>([])
 
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
@@ -80,8 +82,12 @@ const fetchInitialData = async () => {
   loading.value = true
   error.value = ''
   try {
-    const stocks = await stockService.getSavedStocks()
+    const [stocks, owned] = await Promise.all([
+      stockService.getSavedStocks(),
+      portfolioService.getPortfolio()
+    ])
     savedStocks.value = stocks
+    ownedStocks.value = owned
     
     // Start auto-refresh after initial fetch
     searchAreaService.startAutoRefresh(stocks, (updatedStocks, updatedMovers) => {
@@ -95,6 +101,18 @@ const fetchInitialData = async () => {
     loading.value = false
   }
 }
+
+// Add helper function to get ownership info
+  const getOwnershipInfo = (symbol: string) => {
+    const owned = ownedStocks.value.find(stock => stock.symbol === symbol)
+    if (!owned) return null
+    
+    return {
+      shares: owned.quantity,
+      value: owned.quantity * owned.averagePurchasePrice
+    }
+  }
+
 
 const fetchMarketSummary = async () => {
   marketLoading.value = true
@@ -236,6 +254,7 @@ const openPortfolioModal = (stock: StockData) => {
 const closePortfolioModal = () => {
   showPortfolioModal.value = false
   selectedStockForPortfolio.value = null
+  location.reload()
 }
 
 
@@ -419,7 +438,35 @@ const closePortfolioModal = () => {
             <p class="text-lg font-semibold">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</p>
           </div>
         </div>
+
+        <div 
+              v-if="getOwnershipInfo(stock.symbol)"
+              class="mt-4 bg-blue-50 p-3 rounded-lg"
+            >
+              <div class="flex">
+                <div>
+                  <span class="font-medium text-blue-800">Number in Portfolio:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
+                  </span>
+                </div>
+                <div>
+                  <span class="font-medium text-blue-800 ml-6">Total Value:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div 
+              v-else 
+              class="mt-4 bg-gray-50 p-3 rounded-lg"
+            >
+              <p class="font-semibold text-gray-600">Not currently in portfolio</p>
+            </div>
       </div>
+
+      
     </div>
   </div>
 
