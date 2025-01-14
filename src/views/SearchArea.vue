@@ -18,6 +18,7 @@ import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
 import { useLogger } from '../composables/useLogger'
 import type { UserOwnedStock } from '../types/portfolio'
 import { portfolioService } from '../services/portfolioService'
+import { showErrorToast } from '../utils/toast'
 
 interface MarketSummary {
   totalVolume: number
@@ -44,6 +45,7 @@ const logger = useLogger()
 const ownedStocks = ref<UserOwnedStock[]>([])
 const searchHistoryStore = useSearchHistoryStore()
 
+
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
@@ -69,6 +71,14 @@ watchEffect((onCleanup) => {
 })
 
 const handleRemoveStock = (symbol: string) => {
+  // Check if stock is in portfolio
+  const isInPortfolio = ownedStocks.value.some(stock => stock.symbol === symbol)
+  
+  if (isInPortfolio) {
+    showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
+    return
+  }
+  
   confirmRemoval(symbol)
 }
 

@@ -10,6 +10,7 @@ import { useStockRemoval } from '../composables/useStockRemoval'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
 import { portfolioService } from '../services/portfolioService'
 import type { UserOwnedStock } from '../types/portfolio'
+import { showErrorToast } from '../utils/toast'
 
 
 const router = useRouter()
@@ -65,6 +66,15 @@ const getOwnershipInfo = (symbol: string) => {
 }
 
 const handleRemoveStock = (symbol: string) => {
+  // Check if stock is in portfolio
+  const isInPortfolio = ownedStocks.value.some(stock => stock.symbol === symbol)
+  
+  if (isInPortfolio) {
+    showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
+    return
+    
+  }
+  
   confirmRemoval(symbol)
 }
 
