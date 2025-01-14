@@ -60,8 +60,8 @@ const getOwnershipInfo = (symbol: string) => {
 </script>
 
 <template>
-  <div class="mt-4">
-    <div class="flex justify-between items-center mb-1">
+  <div class="mt-2">
+    <div class="flex justify-between items-center">
           <div>
             <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
             <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
@@ -91,22 +91,22 @@ const getOwnershipInfo = (symbol: string) => {
         </div>
     
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-gray-50 p-4 rounded-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-1">
+      <div class="bg-gray-100 p-2 rounded-lg">
         <h3 class="text-sm text-gray-500">Current Price</h3>
         <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
       </div>
-      <div class="bg-gray-50 p-4 rounded-lg">
+      <div class="bg-gray-100 p-2 rounded-lg">
         <h3 class="text-sm text-gray-500">Change</h3>
         <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
           {{ formatChange(stock.change, stock.changePercent) }}
         </p>
       </div>
-      <div class="bg-gray-50 p-4 rounded-lg">
+      <div class="bg-gray-100 p-2 rounded-lg">
         <h3 class="text-sm text-gray-500">Volume</h3>
         <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
       </div>
-      <div class="bg-gray-50 p-4 rounded-lg">
+      <div class="bg-gray-100 p-2 rounded-lg">
         <h3 class="text-sm text-gray-500">Previous Close</h3>
         <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose) }}</p>
       </div>
@@ -114,7 +114,7 @@ const getOwnershipInfo = (symbol: string) => {
         <p class="text-sm text-yellow-700">{{ stock.marketStatus }}</p>
       </div>
     </div>
-    <div class="flex justify-between items-center mb-3">
+    <div class="flex justify-between items-center mt-2 mb-3">
       <button
         @click="navigateToResearch(stock.symbol)"
         class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"

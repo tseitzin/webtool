@@ -11,6 +11,7 @@ import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue
 import type { StockData, MarketMovers } from '../types/polygon'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { useSearchStore } from '../stores/search'
+import { useSearchHistoryStore } from '../stores/searchHistory'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import api from '../api/axios'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
@@ -41,6 +42,7 @@ const showPortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
 const logger = useLogger()
 const ownedStocks = ref<UserOwnedStock[]>([])
+const searchHistoryStore = useSearchHistoryStore()
 
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 
@@ -138,6 +140,7 @@ const searchStock = async () => {
     const stock = await polygonService.getStockSnapshot(currentStock)
     selectedStock.value = stock
     searchStore.setLastSearchedStock(stock)
+    searchHistoryStore.addToHistory(stock) 
 
     await logger.info('Stock search result returned', {
         symbol: selectedStock.value.symbol,
@@ -166,6 +169,10 @@ const clearSearch = () => {
   selectedStock.value = null
   error.value = ''
   searchStore.clearSearch()
+}
+
+const clearSearchHistory = () => {
+  searchHistoryStore.clearHistory()
 }
 
 const toggleSavedStock = async (symbol: string) => {
@@ -300,7 +307,7 @@ const closePortfolioModal = () => {
 
       <!-- Loading State -->
       <div v-if="loading" class="mt-6 bg-white rounded-lg shadow-md p-4 sm:p-8">
-        <h1 class="font-bold text-xl sm:text-2xl text-center">Loading Saved Stocks</h1>
+        <h1 class="font-bold text-xl sm:text-2xl text-center">Loading Stocks</h1>
         <LoadingSpinner size="lg" />
       </div>
 
@@ -333,6 +340,31 @@ const closePortfolioModal = () => {
           >
             Search
           </button>
+        </div>
+
+        <div v-if="searchHistoryStore.searchHistory.length > 0" class="mt-4">
+          <div class="flex mb-2">
+            <h3 class="text-sm font-medium text-gray-700">Recent Searches:</h3>
+            <button
+              @click="clearSearchHistory"
+              class="text-xs text-red-600 hover:text-red-900 hover:bg-gray-200 transition-colors ml-4"
+            >
+              Clear History
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="stock in searchHistoryStore.searchHistory"
+              :key="stock.symbol"
+              @click="() => { searchSymbol = stock.symbol; searchStock(); }"
+              class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-2"
+            >
+              <span>{{ stock.symbol }}</span>
+              <span :class="stock.change >= 0 ? 'text-green-600' : 'text-red-600'">
+                {{ formatPercent(stock.changePercent) }}
+              </span>
+            </button>
+          </div>
         </div>
 
         <!-- Selected Stock Details -->
