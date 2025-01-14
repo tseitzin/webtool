@@ -88,7 +88,7 @@ const fetchInitialData = async () => {
       stockService.getSavedStocks(),
       portfolioService.getPortfolio()
     ])
-    savedStocks.value = stocks
+    savedStocks.value = stocks.sort((a, b) => a.symbol.localeCompare(b.symbol))
     ownedStocks.value = owned
     
     // Start auto-refresh after initial fetch
@@ -224,6 +224,7 @@ const fetchSavedStocks = async () => {
   try {
     const stocks = await stockService.getSavedStocks()
     savedStocks.value = stocks
+    
     
     // Start auto-refresh after initial fetch
     searchAreaService.startAutoRefresh(stocks, (updatedStocks) => {
