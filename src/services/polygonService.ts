@@ -11,7 +11,9 @@ import type {
   NewsArticle,
   RelatedCompany,
   RelatedCompaniesResponse,
-  HistoricalDataPoint
+  HistoricalDataPoint,
+  CompanySearchResponse,
+  CompanySearchResult
 } from '../types/polygon'
 import { getDateRange } from '../utils/dateUtils'
 
@@ -64,6 +66,25 @@ export class PolygonService {
     } catch (error) {
       console.error('Error fetching stock data:', error)
       throw new Error('Failed to fetch stock data')
+    }
+  }
+
+  async searchCompanies(query: string): Promise<CompanySearchResult[]> {
+    try {
+      const apiKey = await this.getApiKey()
+      const response = await axios.get<CompanySearchResponse>(
+        `${this.baseUrl}/v3/reference/tickers?search=${encodeURIComponent(query)}&active=true&sort=ticker&order=asc&limit=10&apiKey=${apiKey}`
+      )
+      
+      return response.data.results.map(result => ({
+        ticker: result.ticker,
+        name: result.name,
+        market: result.market,
+        locale: result.locale
+      }))
+    } catch (error) {
+      console.error('Error searching companies:', error)
+      throw new Error('Failed to search companies')
     }
   }
 

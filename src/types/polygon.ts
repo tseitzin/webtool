@@ -198,6 +198,26 @@ export interface PolygonStockSnapshot {
     request_id: string
     count: number
   }
+
+  export interface CompanySearchResult {
+    ticker: string
+    name: string
+    market: string
+    locale: string
+  }
+ 
+  export interface CompanySearchResponse {
+    results: Array<{
+      ticker: string
+      name: string
+      market: string
+      locale: string
+      active: boolean
+    }>
+    status: string
+    request_id: string
+    count: number
+  }
   
   export type TimeRange = '1W' | '1M' | '3M' | '6M' | '1Y'
   

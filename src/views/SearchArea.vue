@@ -8,7 +8,7 @@ import { searchAreaService } from '../services/searchAreaService'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import StockSearchResult from '../components/StockSearchResult.vue'
 import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
-import type { StockData, MarketMovers } from '../types/polygon'
+import type { StockData, MarketMovers, CompanySearchResult } from '../types/polygon'
 import { useCollapsibleSection } from '../composables/useCollapsibleSection'
 import { useSearchStore } from '../stores/search'
 import { useSearchHistoryStore } from '../stores/searchHistory'
@@ -44,6 +44,10 @@ const selectedStockForPortfolio = ref<StockData | null>(null)
 const logger = useLogger()
 const ownedStocks = ref<UserOwnedStock[]>([])
 const searchHistoryStore = useSearchHistoryStore()
+const searchQuery = ref('')
+const searchResults = ref<CompanySearchResult[]>([])
+const showSearchResults = ref(false)
+const isSearchingCompany = ref(false)
 
 
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
@@ -89,6 +93,31 @@ const handleConfirmRemoval = async () => {
   }
 }
 
+const searchCompanies = async () => {
+    if (!searchQuery.value || searchQuery.value.length < 2) {
+      searchResults.value = []
+      showSearchResults.value = false
+      return
+    }
+
+    isSearchingCompany.value = true
+    try {
+      searchResults.value = await polygonService.searchCompanies(searchQuery.value)
+      showSearchResults.value = true
+    } catch (e) {
+      console.error('Failed to search companies:', e)
+      searchResults.value = []
+    } finally {
+      isSearchingCompany.value = false
+    }
+  }
+
+  const selectCompany = (result: CompanySearchResult) => {
+    searchSymbol.value = result.ticker
+    searchQuery.value = ''
+    showSearchResults.value = false
+    searchStock()
+  }
 
 const fetchInitialData = async () => {
   loading.value = true
@@ -245,25 +274,6 @@ const fetchSavedStocks = async () => {
   }
 }
 
-// const handleAddToPortfolio = async (data: { quantity: number, notes: string }) => {
-//   try {
-//     if (!selectedStockForPortfolio.value) return
-    
-//     await api.post('/portfolio', {
-//       symbol: selectedStockForPortfolio.value.symbol,
-//       quantity: data.quantity,
-//       purchasePrice: selectedStockForPortfolio.value.price,
-//       notes: data.notes
-//     })
-//     showPortfolioModal.value = false
-//     selectedStockForPortfolio.value = null
-//     // Show success message
-//   } catch (error) {
-//     console.error('Failed to add to portfolio:', error)
-//     // Show error message
-//   }
-// }
-
 const openPortfolioModal = (stock: StockData) => {
   selectedStockForPortfolio.value = stock
   showPortfolioModal.value = true
@@ -274,7 +284,6 @@ const closePortfolioModal = () => {
   selectedStockForPortfolio.value = null
   location.reload()
 }
-
 
 </script>
 
@@ -345,6 +354,39 @@ const closePortfolioModal = () => {
               </svg>
             </button>
           </div>
+          <!-- Company Name Search -->
+          <div class="relative w-full sm:w-96">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Or search by company name"
+              class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+              @input="searchCompanies"
+            />
+            <div
+              v-if="showSearchResults && searchResults.length > 0"
+              class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-auto"
+            >
+              <ul class="py-1">
+                <li
+                  v-for="result in searchResults"
+                  :key="result.ticker"
+                  @click="selectCompany(result)"
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  <div class="font-medium">{{ result.name }}</div>
+                  <div class="text-sm text-gray-600">{{ result.ticker }}</div>
+                </li>
+              </ul>
+            </div>
+            <div
+              v-if="isSearchingCompany"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2"
+            >
+              <LoadingSpinner size="sm" />
+            </div>
+          </div>
+
           <button
             @click="searchStock"
             class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-800 transition-colors"
