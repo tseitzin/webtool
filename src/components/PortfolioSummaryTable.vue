@@ -4,6 +4,7 @@ import { ref, onMounted, watchEffect } from 'vue'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
 import type { UserOwnedStock } from '../types/portfolio'
 import { polygonService } from '../services/polygonService'
+import router from '../router';
 
 const props = defineProps<{
   positions: UserOwnedStock[]
@@ -40,6 +41,9 @@ watchEffect((onCleanup) => {
   const interval = setInterval(updatePortfolioValues, 60000)
   onCleanup(() => clearInterval(interval))
 })
+const navigateToResearch = (symbol: string) => {
+  router.push(`/research/${symbol}`)
+}
 
 onMounted(updatePortfolioValues)
 </script>
@@ -60,7 +64,12 @@ onMounted(updatePortfolioValues)
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="position in positions" :key="position.symbol">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ position.symbol }}</td>
+            <td 
+                      class="px-6 py-4 cursor-pointer whitespace-nowrap text-sm text-black-600 hover:text-blue-800 hover:font-bold"
+                      @click="navigateToResearch(position.symbol)"
+                    >
+                      {{ position.symbol }}
+                    </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(position.quantity) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.averagePurchasePrice) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue) }}</td>
