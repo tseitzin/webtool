@@ -65,7 +65,8 @@ const confirmBuy = async () => {
     if (existingPositionId.value) 
     {
         await api.put(`/portfolio/${existingPositionId.value}`, {
-        quantity: currentlyOwned.value + quantity.value,
+        QuantityToBuy: quantity.value,
+        QuantityAlreadyOwned: currentlyOwned.value + quantity.value,
         notes: notes.value
       })
     } else {

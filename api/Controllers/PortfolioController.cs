@@ -1,4 +1,3 @@
-// api/Controllers/PortfolioController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +20,7 @@ public class PortfolioController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Portfolio>>> GetPortfolio()
+    public async Task<ActionResult<IEnumerable<UserOwnedStock>>> GetPortfolio()
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var portfolio = await _context.UserOwnedStocks
@@ -32,26 +31,72 @@ public class PortfolioController : ControllerBase
         return Ok(portfolio);
     }
 
-    // [HttpPost]
-    // public async Task<ActionResult<Portfolio>> AddToPortfolio([FromBody] AddToPortfolioRequest request)
-    // {
-    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    [HttpPost]
+    public async Task<ActionResult<UserOwnedStock>> AddPosition([FromBody] AddPositionRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         
-    //     var portfolio = new Portfolio
-    //     {
-    //         UserId = userId,
-    //         Symbol = request.Symbol.ToUpper(),
-    //         Quantity = request.Quantity,
-    //         PurchasePrice = request.PurchasePrice,
-    //         PurchaseDate = DateTime.UtcNow,
-    //         Notes = request.Notes
-    //     };
+        // Check if user already owns this stock
+        var existingPosition = await _context.UserOwnedStocks
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Symbol == request.Symbol.ToUpper());
 
-    //     _context.Portfolios.Add(portfolio);
-    //     await _context.SaveChangesAsync();
+        try
+        {
+            decimal transactionAmount = request.Quantity * request.PurchasePrice;
 
-    //     return Ok(portfolio);
-    // }
+            if (existingPosition != null)
+            {
+                // Update existing position
+                var totalQuantity = existingPosition.Quantity + request.Quantity;
+                var totalCost = (existingPosition.Quantity * existingPosition.AveragePurchasePrice) + 
+                              (request.Quantity * request.PurchasePrice);
+                
+                existingPosition.Quantity = totalQuantity;
+                existingPosition.AveragePurchasePrice = totalCost / totalQuantity;
+                existingPosition.TotalCost = totalCost;
+                existingPosition.CurrentValue = totalQuantity * request.PurchasePrice;
+                existingPosition.Notes = request.Notes ?? existingPosition.Notes;
+            }
+            else
+            {
+                // Create new position
+                var position = new UserOwnedStock
+                {
+                    UserId = userId,
+                    Symbol = request.Symbol.ToUpper(),
+                    Quantity = request.Quantity,
+                    PurchasePrice = request.PurchasePrice,
+                    AveragePurchasePrice = request.PurchasePrice,
+                    TotalCost = transactionAmount,
+                    CurrentValue = transactionAmount,
+                    PurchaseDate = request.PurchaseDate.ToUniversalTime(),
+                    Notes = request.Notes
+                };
+
+                _context.UserOwnedStocks.Add(position);
+            }
+
+            // Add transaction record
+            var transaction = new Transaction
+            {
+                UserId = userId,
+                StockSymbol = request.Symbol.ToUpper(),
+                TransactionType = "BUY",
+                Quantity = (int)request.Quantity,
+                Price = request.PurchasePrice,
+                TransactionTotal = transactionAmount,
+                TransactionDate = DateTime.UtcNow
+            };
+
+            _context.Transactions.Add(transaction);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
     [HttpPost("{id}/sell")]
     public async Task<ActionResult<UserOwnedStock>> SellPosition(int id, [FromBody] SellPositionRequest request)
@@ -92,9 +137,11 @@ public class PortfolioController : ControllerBase
             {
                 _context.UserOwnedStocks.Remove(position);
             }
-
-            position.CurrentValue -= (request.Quantity * position.PurchasePrice);
-            position.TotalCost -= (request.Quantity * position.PurchasePrice); 
+            else
+            {
+                position.CurrentValue = position.Quantity * position.PurchasePrice;
+                position.TotalCost = position.Quantity * position.AveragePurchasePrice;
+            }
 
             await _context.SaveChangesAsync();
             return Ok(position);
@@ -105,8 +152,6 @@ public class PortfolioController : ControllerBase
         }
     }
 
-
-    
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePosition(int id, [FromBody] UpdatePositionRequest request)
     {
@@ -120,35 +165,35 @@ public class PortfolioController : ControllerBase
         }
 
         // Validate quantity
-        if (request.Quantity < 0)
+        if (request.QuantityToBuy < 0)
         {
             return BadRequest("Quantity cannot be negative");
         }
 
         try 
         {
-            decimal quantityDifference = request.Quantity - position.Quantity;
-            decimal transactionAmount = request.Quantity * position.PurchasePrice;
+            //decimal quantityDifference = request.QuantityToBuy - position.Quantity;
+            decimal transactionAmount = request.QuantityToBuy * position.PurchasePrice;
             
-            if (quantityDifference != 0)
+            // Add transaction record
+            var transaction = new Transaction
             {
-                // Add transaction record
-                var transaction = new Transaction
-                {
-                    UserId = userId,
-                    StockSymbol = position.Symbol,
-                    TransactionType = quantityDifference > 0 ? "BUY" : "SELL",
-                    Quantity = Math.Abs((int)quantityDifference),
-                    Price = position.PurchasePrice,
-                    TransactionTotal = transactionAmount,
-                    TransactionDate = DateTime.UtcNow
-                };
-                _context.Transactions.Add(transaction);
-            }
+                UserId = userId,
+                StockSymbol = position.Symbol,
+                TransactionType = request.QuantityToBuy > 0 ? "BUY" : "SELL",
+                Quantity = (int)request.QuantityToBuy,
+                Price = position.PurchasePrice,
+                TransactionTotal = transactionAmount,
+                TransactionDate = DateTime.UtcNow
+            };
+            _context.Transactions.Add(transaction);
+    
 
             // Update position
-            position.Quantity = request.Quantity;
-            position.CurrentValue += position.TotalCost;
+            position.Quantity = request.QuantityAlreadyOwned;
+
+            position.CurrentValue = position.Quantity * position.PurchasePrice;
+            position.TotalCost = position.Quantity * position.AveragePurchasePrice;
             
             // Update notes if provided
             if (request.Notes != null)
@@ -164,116 +209,4 @@ public class PortfolioController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-
-
-    [HttpPost]
-    public async Task<ActionResult<UserOwnedStock>> AddPosition([FromBody] AddPositionRequest request)
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        
-        // Check if user already owns this stock
-        var existingPosition = await _context.UserOwnedStocks
-            .FirstOrDefaultAsync(s => s.UserId == userId && s.Symbol == request.Symbol.ToUpper());
-
-        try
-        {
-            if (existingPosition != null)
-            {
-                // Update existing position
-                var totalCost = (existingPosition.Quantity * existingPosition.PurchasePrice) + 
-                       (request.Quantity * request.PurchasePrice);
-                var newTotalQuantity = existingPosition.Quantity + request.Quantity;
-                var newAveragePurchasePrice = totalCost / newTotalQuantity;
-
-                existingPosition.Quantity = newTotalQuantity;
-                existingPosition.PurchasePrice = newAveragePurchasePrice;
-                existingPosition.Notes = request.Notes ?? existingPosition.Notes;
-            }
-            else
-            {
-                // Create new position
-                var position = new UserOwnedStock
-                {
-                    UserId = userId,
-                    Symbol = request.Symbol.ToUpper(),
-                    Quantity = request.Quantity,
-                    PurchasePrice = request.PurchasePrice,
-                    AveragePurchasePrice = request.PurchasePrice,
-                    TotalCost = request.Quantity * request.PurchasePrice,
-                    PurchaseDate = request.PurchaseDate.ToUniversalTime(),
-                    Notes = request.Notes
-                };
-                position.CurrentValue += position.TotalCost;
-                _context.UserOwnedStocks.Add(position);
-            }
-
-            decimal transactionAmount = request.Quantity * request.PurchasePrice;
-
-            // Add transaction record
-            var transaction = new Transaction
-            {
-                UserId = userId,
-                StockSymbol = request.Symbol.ToUpper(),
-                TransactionType = "BUY",
-                Quantity = (int)request.Quantity,
-                Price = request.PurchasePrice,
-                TransactionTotal = transactionAmount,
-                TransactionDate = DateTime.UtcNow
-            };
-
-            _context.Transactions.Add(transaction);
-
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-
-    [HttpGet("transactions")]
-    public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions()
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var transactions = await _context.Transactions
-            .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.TransactionDate)
-            .ToListAsync();
-
-        return Ok(transactions);
-    }
-
-
-    // [HttpPost("/portfolio")]
-    // public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction request)
-    // {
-    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-    //     var savedTransaction = new Transaction
-    //     {
-    //         UserId = userId,
-    //         StockSymbol = request.StockSymbol,
-    //         TransactionType = request.TransactionType,
-    //         TransactionDate = DateTime.Now,
-    //         Quantity = request.Quantity,
-    //         Price = request.Price,
-    //     };
-
-    //     _context.Add(savedTransaction);
-
-    //     await _context.SaveChangesAsync();
-    //     return Ok();
-    // }
-
-
-}
-
-public class AddToPortfolioRequest
-{
-    public required string Symbol { get; set; }
-    public required decimal Quantity { get; set; }
-    public required decimal PurchasePrice { get; set; }
-    public string? Notes { get; set; }
 }
