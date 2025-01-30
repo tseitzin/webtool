@@ -73,6 +73,7 @@ public class PortfolioController : ControllerBase
         try
         {
             position.Quantity -= request.Quantity;
+            decimal transactionAmount = request.Quantity * (position.PurchasePrice * -1);
 
             // Add transaction record
             var transaction = new Transaction
@@ -81,7 +82,8 @@ public class PortfolioController : ControllerBase
                 StockSymbol = position.Symbol,
                 TransactionType = "SELL",
                 Quantity = (int)request.Quantity,
-                Price = position.PurchasePrice, // You might want to update this to current market price
+                Price = position.PurchasePrice, 
+                TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow
             };
             _context.Transactions.Add(transaction);
@@ -126,6 +128,7 @@ public class PortfolioController : ControllerBase
         try 
         {
             decimal quantityDifference = request.Quantity - position.Quantity;
+            decimal transactionAmount = request.Quantity * position.PurchasePrice;
             
             if (quantityDifference != 0)
             {
@@ -137,6 +140,7 @@ public class PortfolioController : ControllerBase
                     TransactionType = quantityDifference > 0 ? "BUY" : "SELL",
                     Quantity = Math.Abs((int)quantityDifference),
                     Price = position.PurchasePrice,
+                    TransactionTotal = transactionAmount,
                     TransactionDate = DateTime.UtcNow
                 };
                 _context.Transactions.Add(transaction);
@@ -203,6 +207,8 @@ public class PortfolioController : ControllerBase
                 _context.UserOwnedStocks.Add(position);
             }
 
+            decimal transactionAmount = request.Quantity * request.PurchasePrice;
+
             // Add transaction record
             var transaction = new Transaction
             {
@@ -211,6 +217,7 @@ public class PortfolioController : ControllerBase
                 TransactionType = "BUY",
                 Quantity = (int)request.Quantity,
                 Price = request.PurchasePrice,
+                TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow
             };
 
@@ -239,26 +246,26 @@ public class PortfolioController : ControllerBase
     }
 
 
-    [HttpPost("/portfolio")]
-    public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction request)
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    // [HttpPost("/portfolio")]
+    // public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction request)
+    // {
+    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-        var savedTransaction = new Transaction
-        {
-            UserId = userId,
-            StockSymbol = request.StockSymbol,
-            TransactionType = request.TransactionType,
-            TransactionDate = DateTime.Now,
-            Quantity = request.Quantity,
-            Price = request.Price,
-        };
+    //     var savedTransaction = new Transaction
+    //     {
+    //         UserId = userId,
+    //         StockSymbol = request.StockSymbol,
+    //         TransactionType = request.TransactionType,
+    //         TransactionDate = DateTime.Now,
+    //         Quantity = request.Quantity,
+    //         Price = request.Price,
+    //     };
 
-        _context.Add(savedTransaction);
+    //     _context.Add(savedTransaction);
 
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
+    //     await _context.SaveChangesAsync();
+    //     return Ok();
+    // }
 
 
 }

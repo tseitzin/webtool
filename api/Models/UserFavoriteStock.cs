@@ -1,19 +1,19 @@
-using System.ComponentModel.DataAnnotations;
+// using System.ComponentModel.DataAnnotations;
 
-namespace api.Models;
+// namespace api.Models;
 
-public class UserFavoriteStock
-{
-    public int Id { get; set; }
+// public class UserFavoriteStock
+// {
+//     public int Id { get; set; }
     
-    [Required]
-    public int UserId { get; set; }
+//     [Required]
+//     public int UserId { get; set; }
     
-    [Required]
-    [MaxLength(10)]
-    public required string Symbol { get; set; }
+//     [Required]
+//     [MaxLength(10)]
+//     public required string Symbol { get; set; }
     
-    public DateTime AddedAt { get; set; }
+//     public DateTime AddedDate { get; set; }
     
-    public User User { get; set; } = null!;
-}
+//     public User User { get; set; } = null!;
+// }

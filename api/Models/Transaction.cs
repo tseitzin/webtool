@@ -21,6 +21,8 @@ namespace api.Models
 
         [Required]
         public decimal Price { get; set; }
+        [Required]
+        public decimal TransactionTotal { get; set; }
 
         public DateTime TransactionDate { get; set; }
         public User User { get; set; } = null!;

@@ -1,4 +1,3 @@
-<!-- src/components/PortfolioSummaryTable.vue -->
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from 'vue'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
@@ -41,6 +40,7 @@ watchEffect((onCleanup) => {
   const interval = setInterval(updatePortfolioValues, 60000)
   onCleanup(() => clearInterval(interval))
 })
+
 const navigateToResearch = (symbol: string) => {
   router.push(`/research/${symbol}`)
 }
@@ -56,7 +56,7 @@ onMounted(updatePortfolioValues)
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Purchase Price</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Price</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Value</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gain/Loss</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gain/Loss %</th>
@@ -65,13 +65,13 @@ onMounted(updatePortfolioValues)
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="position in positions" :key="position.symbol">
             <td 
-                      class="px-6 py-4 cursor-pointer whitespace-nowrap text-sm text-black-600 hover:text-blue-800 hover:font-bold"
-                      @click="navigateToResearch(position.symbol)"
-                    >
-                      {{ position.symbol }}
-                    </td>
+              class="px-6 py-4 cursor-pointer whitespace-nowrap text-sm text-black-600 hover:text-blue-800 hover:font-bold"
+              @click="navigateToResearch(position.symbol)"
+            >
+              {{ position.symbol }}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(position.quantity) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.averagePurchasePrice) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue / position.quantity) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm" :class="position.gainLoss >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ formatCurrency(position.gainLoss) }}
