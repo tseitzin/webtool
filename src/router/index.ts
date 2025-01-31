@@ -17,6 +17,7 @@ import { storeToRefs } from 'pinia'
 import Landing from '../views/Landing.vue'
 import CryptoSearch from '../views/CryptoSearch.vue'
 import PortfolioSummary from '../views/PortfolioSummary.vue'
+import TransactionHistory from '../views/TransactionHistory.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -79,6 +80,12 @@ const router = createRouter({
       name: 'audit-logs',
       component: AuditLogs,
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/transaction-history',
+      name: 'transaction-history',
+      component: TransactionHistory,
+      meta: { requiresAuth: true }
     },
     {
       path: '/account',

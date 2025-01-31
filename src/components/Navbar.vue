@@ -104,6 +104,14 @@ onUnmounted(() => {
           >
             Your Portfolio
           </router-link>
+          <router-link 
+            v-if="auth.isAuthenticated"
+            to="/transaction-history" 
+            class="navbar_link"
+            active-class="active"
+          >
+            Transaction History
+          </router-link>
 
           <!-- Admin Dropdown -->
           <div v-if="auth.isAuthenticated && auth.user?.isAdmin" class="relative">

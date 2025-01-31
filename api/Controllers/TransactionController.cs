@@ -20,16 +20,45 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions()
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var transactions = await _context.Transactions
-            .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.TransactionDate)
-            .ToListAsync();
+public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions(
+    [FromQuery] DateTime? startDate,
+    [FromQuery] DateTime? endDate,
+    [FromQuery] string? symbol,
+    [FromQuery] string? type,
+    [FromQuery] string? sortBy = "transactionDate",
+    [FromQuery] string? sortOrder = "desc")
+{
+    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    var query = _context.Transactions.Where(t => t.UserId == userId);
 
-        return Ok(transactions);
-    }
+    // Apply filters
+    if (startDate.HasValue)
+        query = query.Where(t => t.TransactionDate >= startDate.Value);
+
+    if (endDate.HasValue)
+        query = query.Where(t => t.TransactionDate <= endDate.Value);
+
+    if (!string.IsNullOrEmpty(symbol))
+        query = query.Where(t => t.StockSymbol.ToUpper().Contains(symbol.ToUpper()));
+
+    if (!string.IsNullOrEmpty(type))
+        query = query.Where(t => t.TransactionType == type);
+
+    // Apply sorting
+    query = sortBy?.ToLower() switch
+    {
+        "stocksymbol" => sortOrder == "desc" ? query.OrderByDescending(t => t.StockSymbol) : query.OrderBy(t => t.StockSymbol),
+        "transactiontype" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionType) : query.OrderBy(t => t.TransactionType),
+        "quantity" => sortOrder == "desc" ? query.OrderByDescending(t => t.Quantity) : query.OrderBy(t => t.Quantity),
+        "price" => sortOrder == "desc" ? query.OrderByDescending(t => t.Price) : query.OrderBy(t => t.Price),
+        "transactiontotal" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionTotal) : query.OrderBy(t => t.TransactionTotal),
+        _ => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionDate) : query.OrderBy(t => t.TransactionDate)
+    };
+
+    var transactions = await query.ToListAsync();
+    return Ok(transactions);
+}
+
 
     [HttpPost]
     public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction transaction)

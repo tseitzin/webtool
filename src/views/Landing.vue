@@ -66,6 +66,18 @@ const navigationTiles = ref([
     route: '/crypto'
   },
   {
+    title: 'Portfolio Summary',
+    description: 'View your complete portfolio with performance metrics and analytics.',
+    icon: '/portfolio.svg',
+    route: '/portfolio-summary'
+  },
+  {
+    title: 'Transaction History',
+    description: 'Review your complete history of stock purchases and sales.',
+    icon: '/transactions.svg',
+    route: '/transaction-history'
+  },
+  {
     title: 'Account Settings',
     description: 'Manage your profile, security settings, and preferences.',
     icon: '/account.svg',
