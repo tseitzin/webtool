@@ -173,7 +173,7 @@ public class PortfolioController : ControllerBase
         try 
         {
             //decimal quantityDifference = request.QuantityToBuy - position.Quantity;
-            decimal transactionAmount = request.QuantityToBuy * position.PurchasePrice;
+            decimal transactionAmount = request.QuantityToBuy * request.PurchasePrice;
             
             // Add transaction record
             var transaction = new Transaction
@@ -182,7 +182,7 @@ public class PortfolioController : ControllerBase
                 StockSymbol = position.Symbol,
                 TransactionType = request.QuantityToBuy > 0 ? "BUY" : "SELL",
                 Quantity = (int)request.QuantityToBuy,
-                Price = position.PurchasePrice,
+                Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow
             };
