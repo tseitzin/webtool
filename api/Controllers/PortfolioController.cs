@@ -192,8 +192,8 @@ public class PortfolioController : ControllerBase
             // Update position
             position.Quantity = request.QuantityAlreadyOwned;
 
-            position.CurrentValue = position.Quantity * position.PurchasePrice;
-            position.TotalCost = position.Quantity * position.AveragePurchasePrice;
+            position.CurrentValue = position.CurrentValue + transactionAmount;
+            position.TotalCost = position.TotalCost + transactionAmount;
             
             // Update notes if provided
             if (request.Notes != null)

@@ -17,13 +17,14 @@ const emit = defineEmits<{
 const quantity = ref(0)
 const purchasePrice = ref(props.price)
 const sellQuantity = ref(0)
+const sellPrice = ref(props.price) // New ref for sell price
 const notes = ref('')
 const error = ref('')
 const loading = ref(false)
 const currentlyOwned = ref(0)
 const existingPositionId = ref<number | null>(null)
 const showSellConfirmation = ref(false)
-const totalSaleAmount = computed(() => sellQuantity.value * props.price)
+const totalSaleAmount = computed(() => sellQuantity.value * sellPrice.value) // Updated to use sellPrice
 const showBuyConfirmation = ref(false)
 const totalPurchaseAmount = computed(() => quantity.value * purchasePrice.value)
 
@@ -32,11 +33,13 @@ watch(() => props.price, (newPrice) => {
   if (!purchasePrice.value) {
     purchasePrice.value = newPrice
   }
+  sellPrice.value = newPrice // Update sell price when market price changes
 })
 
 onMounted(async () => {
   await fetchCurrentPosition()
   purchasePrice.value = props.price
+  sellPrice.value = props.price // Initialize sell price with current market price
 })
 
 const fetchCurrentPosition = async () => {
@@ -118,10 +121,12 @@ const confirmSell = async () => {
 
   try {
     await api.post(`/portfolio/${existingPositionId.value}/sell`, {
-      quantity: sellQuantity.value
+      quantity: sellQuantity.value,
+      price: sellPrice.value // Include the sell price in the request
     })
     emit('success')
     sellQuantity.value = 0
+    sellPrice.value = props.price // Reset sell price to current market price
     notes.value = ''
     error.value = ''
     await fetchCurrentPosition()
@@ -160,17 +165,17 @@ const cancelBuy = () => {
 
 <template>
   <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-2">
       <h2 class="text-xl font-bold mb-4">Manage Portfolio Position</h2>
-      <p class="mb-4">{{ symbol }} - Current Market Price: {{ formatCurrency(price) }}</p>
+      <p class="mb-1">{{ symbol }} - Current Market Price: {{ formatCurrency(price) }}</p>
       <p class="mb-1">Number in Portfolio: {{ formatNumber(currentlyOwned) }}</p>
-      <p v-if="currentlyOwned > 0" class="mb-4">Total Invested: {{formatCurrency(currentlyOwned*price) }}</p>
+      <p v-if="currentlyOwned > 0" class="mb-2">Total Invested: {{formatCurrency(currentlyOwned*price) }}</p>
 
       <!-- Error Message -->
       <div v-if="error" class="mb-4 text-red-600">{{ error }}</div>
 
       <!-- Buy Section -->
-      <div class="mb-6">
+      <div class="mb-3">
         <h3 class="font-semibold mb-2">Add Shares</h3>
         <div class="space-y-4">
           <div>
@@ -183,6 +188,9 @@ const cancelBuy = () => {
             />
           </div>
           <div>
+            <p class="text-xs text-gray-600 mb-1">
+              Current price is set, however, if you purchased the stock at a different price update ths purchase price
+            </p>
             <label class="block text-sm font-medium text-gray-700">Purchase Price</label>
             <input
               v-model.number="purchasePrice"
@@ -196,7 +204,7 @@ const cancelBuy = () => {
         
         <div v-if="showBuyConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">Confirm Purchase</h3>
+            <h3 class="text-lg font-semibold mb-2">Confirm Purchase</h3>
             <p>Are you sure you want to buy:</p>
             <ul class="my-4 space-y-2">
               <li>Stock: {{ symbol }} </li>
@@ -233,8 +241,8 @@ const cancelBuy = () => {
       <!-- Sell Section -->
       <div class="mb-6">
         <h3 class="font-semibold mb-2">Remove Shares</h3>
-        <div class="flex gap-4 mb-4">
-          <div class="flex-1">
+        <div class="space-y-4">
+          <div>
             <label class="block text-sm font-medium text-gray-700">Quantity to Remove</label>
             <input
               v-model.number="sellQuantity"
@@ -246,6 +254,20 @@ const cancelBuy = () => {
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
+          <div>
+            <p class="text-xs text-gray-600 mb-1">
+              Current price is set, however, if you sold the stock at a different price update ths Sell Price
+            </p>
+            <label class="block text-sm font-medium text-gray-700">Sell Price</label>
+            <input
+              v-model.number="sellPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              :disabled="currentlyOwned === 0"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
         </div>
         <div v-if="showSellConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -254,7 +276,7 @@ const cancelBuy = () => {
             <ul class="my-4 space-y-2">
               <li class="font-semibold">Stock: {{ symbol }} </li>
               <li>Quantity: {{ sellQuantity }} shares</li>
-              <li>Price per share: {{ formatCurrency(price) }}</li>
+              <li>Price per share: {{ formatCurrency(sellPrice) }}</li>
               <li>Total sale amount: {{ formatCurrency(totalSaleAmount) }}</li>
             </ul>
             <div class="flex justify-end space-x-4">
