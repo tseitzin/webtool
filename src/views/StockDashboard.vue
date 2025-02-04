@@ -8,6 +8,7 @@ import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters
 import type { StockData } from '../types/polygon'
 import { useStockRemoval } from '../composables/useStockRemoval'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
+import RemoveFromPortfolioModal from '../components/RemoveFromPortfolioModal.vue'
 import { portfolioService } from '../services/portfolioService'
 import type { UserOwnedStock } from '../types/portfolio'
 import { showErrorToast } from '../utils/toast'
@@ -18,6 +19,7 @@ const auth = useAuthStore()
 const savedStocks = ref<StockData[]>([])
 const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useStockRemoval()
 const showPortfolioModal = ref(false)
+const showRemovePortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
 const ownedStocks = ref<UserOwnedStock[]>([])
 
@@ -122,6 +124,11 @@ const closePortfolioModal = () => {
   selectedStockForPortfolio.value = null
 }
 
+const openRemovePortfolioModal = (stock: StockData) => {
+  selectedStockForPortfolio.value = stock
+  showRemovePortfolioModal.value = true
+}
+
 </script>
 
 <template>
@@ -145,7 +152,7 @@ const closePortfolioModal = () => {
             <h2 class="text-xl font-bold">Your Stock Watchlist</h2>
             <button
               @click="navigateToSearch"
-              class="px-4 py-2 bg-indigo-600 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              class="px-4 py-2 bg-indigo-600 text-xs text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Search Stocks
             </button>
@@ -170,19 +177,26 @@ const closePortfolioModal = () => {
               <div class="flex gap-2">
                 <button
                   @click="navigateToResearch(stock.symbol)"
-                  class="px-4 py-2 bg-green-600 text-sm text-white rounded-lg hover:bg-green-800 transition-colors"
+                  class="px-4 py-2 bg-blue-600 text-xs text-white rounded-lg hover:bg-blue-800 transition-colors"
                 >
-                  Research
+                  Research Stock
                 </button>
                 <button
                   @click="openPortfolioModal(stock)"
-                  class="px-4 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-800 transition-colors"
+                  class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
                 >
-                  Update Portfolio
+                  Buy Stock
+                </button>
+                <button
+                  v-if="getOwnershipInfo(stock.symbol)"
+                  @click="openRemovePortfolioModal(stock)"
+                  class="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-800 transition-colors"
+                >
+                  Sell Stock
                 </button>
                 <button
                   @click="handleRemoveStock(stock.symbol)"
-                  class="px-4 py-2 bg-red-600 text-sm text-white rounded-lg hover:bg-red-800 transition-colors"
+                  class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   Remove
                 </button>
@@ -259,6 +273,15 @@ const closePortfolioModal = () => {
         <AddToPortfolioModal
           v-if="selectedStockForPortfolio"
           :is-open="showPortfolioModal"
+          :symbol="selectedStockForPortfolio.symbol"
+          :price="selectedStockForPortfolio.price"
+          @close="closePortfolioModal"
+          @success="handlePortfolioSuccess"
+        />
+
+        <RemoveFromPortfolioModal
+          v-if="selectedStockForPortfolio"
+          :is-open="showRemovePortfolioModal"
           :symbol="selectedStockForPortfolio.symbol"
           :price="selectedStockForPortfolio.price"
           @close="closePortfolioModal"
