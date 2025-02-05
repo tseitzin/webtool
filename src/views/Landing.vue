@@ -121,7 +121,7 @@ if (auth.user?.isAdmin) {
       <!-- Welcome Section -->
       <div class="text-center mb-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-4">
-          Welcome back, {{ auth.user?.name }}!
+          Welcome, {{ auth.user?.name }}!
         </h1>
         <p class="text-gray-600 max-w-2xl mx-auto">
           Navigate through your financial journey with our comprehensive tools and features.
@@ -132,9 +132,13 @@ if (auth.user?.isAdmin) {
       <!-- Navigation Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
         <NavigationTile
-          v-for="tile in navigationTiles"
+          v-for="(tile, index) in navigationTiles"
           :key="tile.route"
           v-bind="tile"
+          :class="{
+            'md:col-span-2 lg:col-span-3 lg:w-1/3 lg:mx-auto': 
+              index === navigationTiles.length - 1 && navigationTiles.length % 3 === 1
+          }"
         />
       </div>
 
