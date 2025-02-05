@@ -114,15 +114,6 @@ const getOwnershipInfo = (symbol: string) => {
         <p class="text-sm text-yellow-700">{{ stock.marketStatus }}</p>
       </div>
     </div>
-    <div class="flex justify-between items-center mt-2 mb-3">
-      <button
-        @click="navigateToResearch(stock.symbol)"
-        class="px-2 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-700 transition-colors"
-        title="Research Stock"
-      >
-        Research Stock
-      </button>
-    </div>
 
     <div 
           v-if="getOwnershipInfo(stock.symbol)"

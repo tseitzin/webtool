@@ -395,7 +395,7 @@ const closePortfolioModal = () => {
           </button>
         </div>
 
-        <div v-if="searchHistoryStore.searchHistory.length > 0" class="mt-4">
+        <div v-if="searchHistoryStore.searchHistory.length > 0" class="mt-4 mb-3">
           <div class="flex mb-2">
             <h3 class="text-sm font-medium text-gray-700">Recent Searches:</h3>
             <button
