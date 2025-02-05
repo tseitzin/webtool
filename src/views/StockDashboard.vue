@@ -129,6 +129,11 @@ const openRemovePortfolioModal = (stock: StockData) => {
   showRemovePortfolioModal.value = true
 }
 
+const closeRemovePortfolioModal = () => {
+  showRemovePortfolioModal.value = false
+  selectedStockForPortfolio.value = null
+}
+
 </script>
 
 <template>
@@ -284,7 +289,7 @@ const openRemovePortfolioModal = (stock: StockData) => {
           :is-open="showRemovePortfolioModal"
           :symbol="selectedStockForPortfolio.symbol"
           :price="selectedStockForPortfolio.price"
-          @close="closePortfolioModal"
+          @close="closeRemovePortfolioModal"
           @success="handlePortfolioSuccess"
         />
   

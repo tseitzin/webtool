@@ -112,7 +112,7 @@ const cancelSell = () => {
 <template>
   <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-2">
-      <h2 class="text-xl font-bold mb-4">Manage Portfolio Position</h2>
+      <h2 class="text-xl font-bold mb-4">Sell Portfolio Position</h2>
       <p class="mb-1">{{ symbol }} - Current Market Price: {{ formatCurrency(price) }}</p>
       <p class="mb-1">Number in Portfolio: {{ formatNumber(currentlyOwned) }}</p>
       <p v-if="currentlyOwned > 0" class="mb-2">Total Invested: {{formatCurrency(currentlyOwned*price) }}</p>
