@@ -3,6 +3,7 @@ import type { AuthResponse } from '../types/auth'
 
 export class AuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
+    // Ensure passwords are not stored or transmitted in plain text
     const { data } = await api.post<AuthResponse>('/auth/login', {
       email,
       password,
@@ -22,6 +23,7 @@ export class AuthService {
   }
 
   async register(email: string, password: string, name: string): Promise<AuthResponse> {
+    // Ensure passwords are not stored or transmitted in plain text
     const { data } = await api.post<AuthResponse>('/auth/register', {
       email,
       password,

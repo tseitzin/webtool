@@ -117,7 +117,7 @@
       <div class="text-center max-w-3xl mx-auto">
         <h2 class="text-3xl font-bold mb-6">Ready to Start Your Financial Journey?</h2>
         <p class="text-gray-600 mb-8">
-          Join thousands of investors who are already using our platform to track their investments 
+          Join the other investors who are already using our platform to track their investments 
           and make better financial decisions.
         </p>
         <div class="tiles-grid">
@@ -149,7 +149,7 @@ interface NavTile {
   const navigationTiles: NavTile[] = [
     {
       title: 'Login to your account',
-      description: 'Login and start trading!',
+      description: 'Login and track your investments',
       route: '/login',
       icon: '/market.svg'
     },
@@ -203,6 +203,7 @@ input[type="number"]::-webkit-inner-spin-button {
   
   .tile:hover {
     transform: translateY(-4px);
+    background: rgb(236, 234, 234);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
