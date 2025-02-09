@@ -25,6 +25,8 @@ onMounted(async () => {
 })
 
 const ownedStocks = ref<UserOwnedStock[]>([])
+const showRemoveModal = ref(false)
+const stockToRemove = ref<string | null>(null)
 
 const emit = defineEmits<{
   (e: 'toggleFavorite', symbol: string): void
@@ -47,16 +49,27 @@ const fetchSavedStocks = async () => {
   }
 }
 
-const handleToggleFavorite = (symbol: string) => {
+const handleRemoveStock = (symbol: string) => {
   // Check if stock is in portfolio when trying to remove it
-  if (props.isFavorited) {
-    const isInPortfolio = ownedStocks.value.some(stock => stock.symbol === symbol)
-    if (isInPortfolio) {
-      showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
-      return
-    }
+  const isInPortfolio = ownedStocks.value.some(stock => stock.symbol === symbol)
+  if (isInPortfolio) {
+    showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
+    return
   }
-  emit('toggleFavorite', symbol)
+  stockToRemove.value = symbol
+  showRemoveModal.value = true
+}
+
+const handleConfirmRemoval = () => {
+  if (stockToRemove.value) {
+    emit('toggleFavorite', stockToRemove.value)
+  }
+  cancelRemoval()
+}
+
+const cancelRemoval = () => {
+  showRemoveModal.value = false
+  stockToRemove.value = null
 }
 
 // Add helper function to get ownership info
@@ -87,14 +100,14 @@ const getOwnershipInfo = (symbol: string) => {
         </button>
         <button
           v-if="!isFavorited"
-          @click="handleToggleFavorite(stock.symbol)"
+          @click="emit('toggleFavorite', stock.symbol)"
           class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
         >
           Add to Watchlist
         </button>
         <button
           v-else
-          @click="handleToggleFavorite(stock.symbol)"
+          @click="handleRemoveStock(stock.symbol)"
           class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
         >
           Remove
@@ -152,5 +165,13 @@ const getOwnershipInfo = (symbol: string) => {
     <div v-if="stock.marketStatus.includes('closed')" class="mt-4 bg-yellow-50 p-4 rounded-lg">
       <p class="text-sm text-yellow-700">{{ stock.marketStatus }}</p>
     </div>
+
+    <ConfirmationModal
+      :is-open="showRemoveModal"
+      title="Remove Stock"
+      message="Are you sure you want to remove this stock from your watchlist?"
+      @confirm="handleConfirmRemoval"
+      @cancel="cancelRemoval"
+    />
   </div>
 </template>
