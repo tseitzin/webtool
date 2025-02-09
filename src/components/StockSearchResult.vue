@@ -88,26 +88,26 @@ const getOwnershipInfo = (symbol: string) => {
   <div class="mt-2">
     <div class="flex justify-between items-center">
       <div>
-        <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
-        <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
+        <h3 class="text-lg font-bold">{{ props.stock.symbol }}</h3>
+        <p class="text-sm text-gray-600">{{ props.stock.companyName }}</p>
       </div>
       <div class="flex gap-2">
         <button
-          @click="navigateToResearch(stock.symbol)"
+          @click="navigateToResearch(props.stock.symbol)"
           class="px-4 py-2 bg-blue-600 text-xs text-white rounded-lg hover:bg-blue-800 transition-colors"
         >
           Research Stock
         </button>
         <button
-          v-if="!isFavorited"
-          @click="emit('toggleFavorite', stock.symbol)"
+          v-if="!props.isFavorited"
+          @click="emit('toggleFavorite', props.stock.symbol)"
           class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
         >
           Add to Watchlist
         </button>
         <button
           v-else
-          @click="handleRemoveStock(stock.symbol)"
+          @click="handleRemoveStock(props.stock.symbol)"
           class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
         >
           Remove
@@ -118,39 +118,39 @@ const getOwnershipInfo = (symbol: string) => {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
       <div class="bg-gray-100 p-2 rounded-lg">
         <p class="text-sm text-gray-500">Current Price</p>
-        <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
+        <p class="text-lg font-semibold">{{ formatCurrency(props.stock.price) }}</p>
       </div>
       <div class="bg-gray-100 p-2 rounded-lg">
         <p class="text-sm text-gray-500">Today's Change</p>
-        <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-          {{ formatChange(stock.change, stock.changePercent) }}
+        <p :class="['text-lg font-semibold', props.stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
+          {{ formatChange(props.stock.change, props.stock.changePercent) }}
         </p>
       </div>
       <div class="bg-gray-100 p-2 rounded-lg">
         <p class="text-sm text-gray-500">Volume</p>
-        <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
+        <p class="text-lg font-semibold">{{ formatNumber(props.stock.volume) }}</p>
       </div>
       <div class="bg-gray-100 p-2 rounded-lg">
         <p class="text-sm text-gray-500">Previous Close</p>
-        <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose) }}</p>
+        <p class="text-lg font-semibold">{{ formatCurrency(props.stock.previousClose) }}</p>
       </div>
     </div>
 
     <div 
-      v-if="getOwnershipInfo(stock.symbol)"
+      v-if="getOwnershipInfo(props.stock.symbol)"
       class="mt-4 bg-blue-50 p-3 rounded-lg"
     >
       <div class="flex">
         <div>
           <span class="font-medium text-blue-800">Number in Portfolio:</span>
           <span class="ml-2 text-blue-700">
-            {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
+            {{ formatNumber(getOwnershipInfo(props.stock.symbol)?.shares || 0) }} shares
           </span>
         </div>
         <div>
           <span class="font-medium text-blue-800 ml-6">Total Value:</span>
           <span class="ml-2 text-blue-700">
-            {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
+            {{ formatCurrency((getOwnershipInfo(props.stock.symbol)?.value || 0)) }}
           </span>
         </div>
       </div>
@@ -162,8 +162,8 @@ const getOwnershipInfo = (symbol: string) => {
       <p class="font-semibold text-gray-600">Not currently in portfolio</p>
     </div>
 
-    <div v-if="stock.marketStatus.includes('closed')" class="mt-4 bg-yellow-50 p-4 rounded-lg">
-      <p class="text-sm text-yellow-700">{{ stock.marketStatus }}</p>
+    <div v-if="props.stock.marketStatus.includes('closed')" class="mt-4 bg-yellow-50 p-4 rounded-lg">
+      <p class="text-sm text-yellow-700">{{ props.stock.marketStatus }}</p>
     </div>
 
     <ConfirmationModal
