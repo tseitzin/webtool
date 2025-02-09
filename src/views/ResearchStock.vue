@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { polygonService } from '../services/polygonService'
-import { formatNumber } from '../utils/formatters'
+import { formatNumber, formatCurrency } from '../utils/formatters'
 import type { CompanyDetails, NewsArticle, StockData, RelatedCompany, HistoricalDataPoint } from '../types/polygon'
 import StockDetailsCard from '../components/StockDetailsCard.vue'
 import RelatedCompanies from '../components/RelatedCompanies.vue'
@@ -13,9 +13,10 @@ import { useStockRemoval } from '../composables/useStockRemoval'
 import type { TimeRange } from '../types/polygon'
 import StockPriceChart from '../components/StockPriceChart.vue'
 import AddToPortfolioModal from '../components/AddToPortfolioModal.vue'
+import RemoveFromPortfolioModal from '../components/RemoveFromPortfolioModal.vue'
 import { portfolioService } from '../services/portfolioService'
 import type { UserOwnedStock } from '../types/portfolio'
-import { formatCurrency } from '../utils/formatters'
+import { showErrorToast } from '../utils/toast'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,6 +32,7 @@ const { showRemoveModal, stockToRemove, confirmRemoval, cancelRemoval } = useSto
 const historicalData = ref<HistoricalDataPoint[]>([])
 const selectedTimeRange = ref<TimeRange>('1M')
 const showPortfolioModal = ref(false)
+const showRemovePortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
 const ownedStocks = ref<UserOwnedStock[]>([])
 
@@ -76,6 +78,14 @@ onMounted(async () => {
 })
 
 const handleRemoveStock = (symbol: string) => {
+  // Check if stock is in portfolio
+  const isInPortfolio = ownedStocks.value.some(stock => stock.symbol === symbol)
+  
+  if (isInPortfolio) {
+    showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
+    return
+  }
+  
   confirmRemoval(symbol)
 }
 
@@ -91,9 +101,6 @@ const handleTimeRangeChange = async (range: string) => {
     if (companyDetails.value) {
       const data = await polygonService.getHistoricalData(companyDetails.value.ticker, range)
       historicalData.value = data
-    }
-    else {
-      return []
     }
   } catch (error) {
     console.error('Failed to fetch historical data:', error)
@@ -147,6 +154,17 @@ const openPortfolioModal = (stock: StockData) => {
 const closePortfolioModal = () => {
   showPortfolioModal.value = false
   selectedStockForPortfolio.value = null
+  location.reload()
+}
+
+const openRemovePortfolioModal = (stock: StockData) => {
+  selectedStockForPortfolio.value = stock
+  showRemovePortfolioModal.value = true
+}
+
+const closeRemovePortfolioModal = () => {
+  showRemovePortfolioModal.value = false
+  selectedStockForPortfolio.value = null
 }
 
 const getOwnershipInfo = (symbol: string) => {
@@ -194,57 +212,63 @@ const handlePortfolioSuccess = async () => {
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
-                @click="isSaved ? handleRemoveStock(companyDetails.ticker) : toggleSaveStock()"
-                class="px-4 py-2 text-sm font-medium rounded-md"
-                :class="isSaved ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'"
-              >
-                {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
+                @click="navigateToSearch"
+                class="px-4 py-2 bg-blue-600 text-xs text-white rounded-lg hover:bg-blue-800 transition-colors"
+                >
+                Return to Search
               </button>
               <button
                 v-if="stockData"
                 @click="openPortfolioModal(stockData)"
-                class="px-4 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-800 transition-colors"
-              >
-                Update Portfolio
+                class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
+                >
+                Buy Stock
               </button>
               <button
-                @click="navigateToSearch"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto text-center"
-              >
-                Return to Search
+                v-if="stockData && getOwnershipInfo(stockData.symbol)"
+                @click="openRemovePortfolioModal(stockData)"
+                class="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-800 transition-colors"
+                >
+                Sell Stock
               </button>
+              <button
+                @click="isSaved ? handleRemoveStock(companyDetails.ticker) : toggleSaveStock()"
+                class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
+                :class="isSaved ? 'bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800' : 'bg-green-600 text-white hover:bg-green-700'"
+              >
+                {{ isSaved ? 'Remove from Watchlist' : 'Add to Watchlist' }}
+              </button>
+              
             </div>
           </div>
 
           <div v-if="stockData">
-          <div 
-            v-if="getOwnershipInfo(stockData.symbol)"
-            class="bg-blue-50 p-4 rounded-lg mt-2"
-          >
-            <div class="flex flex-col sm:flex-row gap-4">
-              <div>
-                <span class="font-medium text-blue-800">Number in Portfolio:</span>
-                <span class="ml-2 text-blue-700">
-                  {{ formatNumber(getOwnershipInfo(stockData.symbol)?.shares || 0) }} shares
-                </span>
-              </div>
-              <div>
-                <span class="font-medium text-blue-800">Total Value:</span>
-                <span class="ml-2 text-blue-700">
-                  {{ formatCurrency((getOwnershipInfo(stockData.symbol)?.value || 0)) }}
-                </span>
+            <div 
+              v-if="getOwnershipInfo(stockData.symbol)"
+              class="bg-blue-50 p-4 rounded-lg mt-2"
+            >
+              <div class="flex flex-col sm:flex-row gap-4">
+                <div>
+                  <span class="font-medium text-blue-800">Number in Portfolio:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatNumber(getOwnershipInfo(stockData.symbol)?.shares || 0) }} shares
+                  </span>
+                </div>
+                <div>
+                  <span class="font-medium text-blue-800">Total Value:</span>
+                  <span class="ml-2 text-blue-700">
+                    {{ formatCurrency((getOwnershipInfo(stockData.symbol)?.value || 0)) }}
+                  </span>
+                </div>
               </div>
             </div>
+            <div 
+              v-else 
+              class="bg-gray-50 p-4 rounded-lg mt-2"
+            >
+              <p class="font-semibold text-gray-600">Not currently in portfolio</p>
+            </div>
           </div>
-          <div 
-            v-else 
-            class="bg-gray-50 p-4 rounded-lg mt-2"
-          >
-            <p class="font-semibold text-gray-600">Not currently in portfolio</p>
-          </div>
-        </div>
-
-        
         </div>
 
         <!-- Stock Details Section -->
@@ -253,8 +277,7 @@ const handlePortfolioSuccess = async () => {
           :stock="stockData"
         />
 
-        <!-- Portfolio Information -->
-        
+        <!-- Stock Price Chart -->
         <StockPriceChart
           v-if="historicalData.length > 0"
           :data="historicalData"
@@ -346,6 +369,7 @@ const handlePortfolioSuccess = async () => {
           :symbol="companyDetails.ticker"
         />
 
+        <!-- Modals -->
         <ConfirmationModal
           :is-open="showRemoveModal"
           title="Remove Stock"
@@ -362,7 +386,15 @@ const handlePortfolioSuccess = async () => {
           @close="closePortfolioModal"
           @success="handlePortfolioSuccess"
         />
-        
+
+        <RemoveFromPortfolioModal
+          v-if="selectedStockForPortfolio"
+          :is-open="showRemovePortfolioModal"
+          :symbol="selectedStockForPortfolio.symbol"
+          :price="selectedStockForPortfolio.price"
+          @close="closeRemovePortfolioModal"
+          @success="handlePortfolioSuccess"
+        />
       </div>
     </div>
   </div>
