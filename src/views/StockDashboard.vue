@@ -12,7 +12,8 @@ import RemoveFromPortfolioModal from '../components/RemoveFromPortfolioModal.vue
 import { portfolioService } from '../services/portfolioService'
 import type { UserOwnedStock } from '../types/portfolio'
 import { showErrorToast } from '../utils/toast'
-
+import { useCollapsibleSection } from '../composables/useCollapsibleSection'
+import CollapsibleSectionHeader from '../components/CollapsibleSectionHeader.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -22,6 +23,9 @@ const showPortfolioModal = ref(false)
 const showRemovePortfolioModal = ref(false)
 const selectedStockForPortfolio = ref<StockData | null>(null)
 const ownedStocks = ref<UserOwnedStock[]>([])
+
+const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
+  useCollapsibleSection('dashboard_intro')
 
 onMounted(async () => {
   if (!auth.isAuthenticated) {
@@ -74,7 +78,6 @@ const handleRemoveStock = (symbol: string) => {
   if (isInPortfolio) {
     showErrorToast(`Cannot remove ${symbol} from watchlist while it is in your portfolio`, 3000)
     return
-    
   }
   
   confirmRemoval(symbol)
@@ -84,7 +87,6 @@ const handlePortfolioSuccess = async () => {
   // Refresh data after successful portfolio update
   await fetchSavedStocks()
 }
-
 
 const handleConfirmRemoval = async () => {
   if (stockToRemove.value) {
@@ -122,6 +124,7 @@ const openPortfolioModal = (stock: StockData) => {
 const closePortfolioModal = () => {
   showPortfolioModal.value = false
   selectedStockForPortfolio.value = null
+  location.reload()
 }
 
 const openRemovePortfolioModal = (stock: StockData) => {
@@ -133,173 +136,203 @@ const closeRemovePortfolioModal = () => {
   showRemovePortfolioModal.value = false
   selectedStockForPortfolio.value = null
 }
-
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100">
-      <div class="container mx-auto px-4 py-4">
-        <!-- Saved Stocks Section -->
-        <div v-if="savedStocks.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
-          <h3 class="text-xl font-semibold mb-4">No Saved Stocks Yet</h3>
-          <p class="text-gray-600 mb-6">Start building your watchlist by adding stocks you want to track.</p>
+  <div class="min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-4">
+      <!-- Introduction Section -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <CollapsibleSectionHeader
+          title="Stock Dashboard Overview"
+          :is-expanded="isIntroExpanded"
+          @toggle="toggleIntro"
+        />
+        
+        <div
+          v-show="isIntroExpanded"
+          class="p-4 sm:p-6 transition-all duration-300 ease-in-out bg-indigo-100 rounded-xl"
+        >
+          <p class="mb-4 font-bold text-sm sm:text-base">
+            Welcome to your Stock Dashboard - your central hub for monitoring and managing your stock watchlist.
+          </p>
+          <p class="mb-4 text-sm sm:text-base">
+            This dashboard provides real-time updates and comprehensive features for your saved stocks:
+          </p>
+          <ul class="list-disc list-inside space-y-2 ml-4 text-sm sm:text-base">
+            <li>View real-time price updates and market data for your watchlisted stocks</li>
+            <li>Track key metrics including price changes, volume, and market status</li>
+            <li>Manage your portfolio with quick access to buy and sell functions</li>
+            <li>Access detailed research and analysis for any stock with one click</li>
+            <li>Monitor your current positions and total investment values</li>
+            <li>Receive market status updates and trading hour notifications</li>
+          </ul>
+          <p class="mt-4 text-sm sm:text-base italic">
+            Note: Market data updates automatically every minute during trading hours.
+          </p>
+        </div>
+      </div>
+
+      <!-- Saved Stocks Section -->
+      <div v-if="savedStocks.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
+        <h3 class="text-xl font-semibold mb-4">No Saved Stocks Yet</h3>
+        <p class="text-gray-600 mb-6">Start building your watchlist by adding stocks you want to track.</p>
+        <button
+          @click="navigateToSearch"
+          class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Search and Add Stocks
+        </button>
+      </div>
+
+      <!-- Saved Stocks List -->
+      <div v-else class="space-y-4">
+        <div class="flex flex-row justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Your Stock Watchlist</h2>
           <button
             @click="navigateToSearch"
-            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            class="px-4 py-2 bg-indigo-600 text-xs text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            Search and Add Stocks
+            Search Stocks
           </button>
         </div>
-  
-        <!-- Saved Stocks List -->
-        <div v-else class="space-y-4">
-          <div class="flex flex-row justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Your Stock Watchlist</h2>
-            <button
-              @click="navigateToSearch"
-              class="px-4 py-2 bg-indigo-600 text-xs text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Search Stocks
-            </button>
-          </div>
-  
-          <MarketStatusMessage 
-            v-if="savedStocks[0]?.marketStatus"
-            :market-status="savedStocks[0].marketStatus" 
-          />
-  
-          <div
-            v-for="stock in savedStocks"
-            :key="stock.symbol"
-            class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4"
-          >
-            <!-- Stock Header -->
-            <div class="flex justify-between items-center mb-1">
-              <div>
-                <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
-                <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  @click="navigateToResearch(stock.symbol)"
-                  class="px-4 py-2 bg-blue-600 text-xs text-white rounded-lg hover:bg-blue-800 transition-colors"
-                >
-                  Research Stock
-                </button>
-                <button
-                  @click="openPortfolioModal(stock)"
-                  class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
-                >
-                  Buy Stock
-                </button>
-                <button
-                  v-if="getOwnershipInfo(stock.symbol)"
-                  @click="openRemovePortfolioModal(stock)"
-                  class="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-800 transition-colors"
-                >
-                  Sell Stock
-                </button>
-                <button
-                  @click="handleRemoveStock(stock.symbol)"
-                  class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-  
-            <!-- Stock Details Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Current Price</p>
-                <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
-              </div>
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Today's Change</p>
-                <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
-                  {{ formatChange(stock.change, stock.changePercent) }}
-                </p>
-              </div>
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Volume</p>
-                <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
-              </div>
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Previous Close</p>
-                <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
-              </div>
-            </div>
-  
-            <!-- Additional Details Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Open</p>
-                <p class="text-lg font-semibold">{{ stock.open ? formatCurrency(stock.open) : 'N/A' }}</p>
-              </div>
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">High</p>
-                <p class="text-lg font-semibold">{{ stock.high ? formatCurrency(stock.high) : 'N/A' }}</p>
-              </div>
-              <div class="bg-gray-100 p-2 rounded-lg">
-                <p class="text-sm text-gray-500">Low</p>
-                <p class="text-lg font-semibold">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</p>
-              </div>
-            </div>
 
-            <div 
-              v-if="getOwnershipInfo(stock.symbol)"
-              class="mt-4 bg-blue-50 p-3 rounded-lg"
-            >
-              <div class="flex">
-                <div>
-                  <span class="font-medium text-blue-800">Number in Portfolio:</span>
-                  <span class="ml-2 text-blue-700">
-                    {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
-                  </span>
-                </div>
-                <div>
-                  <span class="font-medium text-blue-800 ml-6">Total Value:</span>
-                  <span class="ml-2 text-blue-700">
-                    {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
-                  </span>
-                </div>
+        <MarketStatusMessage 
+          v-if="savedStocks[0]?.marketStatus"
+          :market-status="savedStocks[0].marketStatus" 
+        />
+
+        <div
+          v-for="stock in savedStocks"
+          :key="stock.symbol"
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-4"
+        >
+          <!-- Stock Header -->
+          <div class="flex justify-between items-center mb-1">
+            <div>
+              <h3 class="text-lg font-bold">{{ stock.symbol }}</h3>
+              <p class="text-sm text-gray-600">{{ stock.companyName }}</p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                @click="navigateToResearch(stock.symbol)"
+                class="px-4 py-2 bg-blue-600 text-xs text-white rounded-lg hover:bg-blue-800 transition-colors"
+              >
+                Research Stock
+              </button>
+              <button
+                @click="openPortfolioModal(stock)"
+                class="px-4 py-2 bg-green-600 text-xs text-white rounded-lg hover:bg-green-800 transition-colors"
+              >
+                Buy Stock
+              </button>
+              <button
+                v-if="getOwnershipInfo(stock.symbol)"
+                @click="openRemovePortfolioModal(stock)"
+                class="px-4 py-2 bg-red-600 text-xs text-white rounded-lg hover:bg-red-800 transition-colors"
+              >
+                Sell Stock
+              </button>
+              <button
+                @click="handleRemoveStock(stock.symbol)"
+                class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Stock Details Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Current Price</p>
+              <p class="text-lg font-semibold">{{ formatCurrency(stock.price) }}</p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Today's Change</p>
+              <p :class="['text-lg font-semibold', stock.change >= 0 ? 'text-green-600' : 'text-red-600']">
+                {{ formatChange(stock.change, stock.changePercent) }}
+              </p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Volume</p>
+              <p class="text-lg font-semibold">{{ formatNumber(stock.volume) }}</p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Previous Close</p>
+              <p class="text-lg font-semibold">{{ formatCurrency(stock.previousClose || 0) }}</p>
+            </div>
+          </div>
+
+          <!-- Additional Details Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Open</p>
+              <p class="text-lg font-semibold">{{ stock.open ? formatCurrency(stock.open) : 'N/A' }}</p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">High</p>
+              <p class="text-lg font-semibold">{{ stock.high ? formatCurrency(stock.high) : 'N/A' }}</p>
+            </div>
+            <div class="bg-gray-100 p-2 rounded-lg">
+              <p class="text-sm text-gray-500">Low</p>
+              <p class="text-lg font-semibold">{{ stock.low ? formatCurrency(stock.low) : 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div 
+            v-if="getOwnershipInfo(stock.symbol)"
+            class="mt-4 bg-blue-50 p-3 rounded-lg"
+          >
+            <div class="flex">
+              <div>
+                <span class="font-medium text-blue-800">Number in Portfolio:</span>
+                <span class="ml-2 text-blue-700">
+                  {{ formatNumber(getOwnershipInfo(stock.symbol)?.shares || 0) }} shares
+                </span>
+              </div>
+              <div>
+                <span class="font-medium text-blue-800 ml-6">Total Value:</span>
+                <span class="ml-2 text-blue-700">
+                  {{ formatCurrency((getOwnershipInfo(stock.symbol)?.value || 0)) }}
+                </span>
               </div>
             </div>
-            
-            <div 
-              v-else 
-              class="mt-4 bg-gray-50 p-3 rounded-lg"
-            >
-              <p class="font-semibold text-gray-600">Not currently in portfolio</p>
-            </div>
+          </div>
+          <div 
+            v-else 
+            class="mt-4 bg-gray-50 p-3 rounded-lg"
+          >
+            <p class="font-semibold text-gray-600">Not currently in portfolio</p>
           </div>
         </div>
-
-        <AddToPortfolioModal
-          v-if="selectedStockForPortfolio"
-          :is-open="showPortfolioModal"
-          :symbol="selectedStockForPortfolio.symbol"
-          :price="selectedStockForPortfolio.price"
-          @close="closePortfolioModal"
-          @success="handlePortfolioSuccess"
-        />
-
-        <RemoveFromPortfolioModal
-          v-if="selectedStockForPortfolio"
-          :is-open="showRemovePortfolioModal"
-          :symbol="selectedStockForPortfolio.symbol"
-          :price="selectedStockForPortfolio.price"
-          @close="closeRemovePortfolioModal"
-          @success="handlePortfolioSuccess"
-        />
-  
-        <ConfirmationModal
-          :is-open="showRemoveModal"
-          title="Remove Stock"
-          message="Are you sure you want to remove this stock from your watchlist?"
-          @confirm="handleConfirmRemoval"
-          @cancel="cancelRemoval"
-        />
       </div>
+
+      <AddToPortfolioModal
+        v-if="showPortfolioModal && selectedStockForPortfolio"
+        :is-open="showPortfolioModal"
+        :symbol="selectedStockForPortfolio.symbol"
+        :price="selectedStockForPortfolio.price"
+        @close="closePortfolioModal"
+        @success="handlePortfolioSuccess"
+      />
+
+      <RemoveFromPortfolioModal
+        v-if="selectedStockForPortfolio"
+        :is-open="showRemovePortfolioModal"
+        :symbol="selectedStockForPortfolio.symbol"
+        :price="selectedStockForPortfolio.price"
+        @close="closeRemovePortfolioModal"
+        @success="handlePortfolioSuccess"
+      />
+
+      <ConfirmationModal
+        :is-open="showRemoveModal"
+        title="Remove Stock"
+        message="Are you sure you want to remove this stock from your watchlist?"
+        @confirm="handleConfirmRemoval"
+        @cancel="cancelRemoval"
+      />
     </div>
-  </template>
+  </div>
+</template>
