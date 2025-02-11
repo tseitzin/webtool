@@ -20,77 +20,47 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet]
-public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions(
-    [FromQuery] DateTime? startDate,
-    [FromQuery] DateTime? endDate,
-    [FromQuery] string? symbol,
-    [FromQuery] string? type,
-    [FromQuery] string? sortBy = "transactionDate",
-    [FromQuery] string? sortOrder = "desc")
-{
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-    var query = _context.Transactions.Where(t => t.UserId == userId);
-
-    // Apply filters
-    if (startDate.HasValue)
-        query = query.Where(t => t.TransactionDate >= startDate.Value);
-
-    if (endDate.HasValue)
-        query = query.Where(t => t.TransactionDate <= endDate.Value);
-
-    if (!string.IsNullOrEmpty(symbol))
-        query = query.Where(t => t.StockSymbol.ToUpper().Contains(symbol.ToUpper()));
-
-    if (!string.IsNullOrEmpty(type))
-        query = query.Where(t => t.TransactionType == type);
-
-    // Apply sorting
-    query = sortBy?.ToLower() switch
-    {
-        "stocksymbol" => sortOrder == "desc" ? query.OrderByDescending(t => t.StockSymbol) : query.OrderBy(t => t.StockSymbol),
-        "transactiontype" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionType) : query.OrderBy(t => t.TransactionType),
-        "quantity" => sortOrder == "desc" ? query.OrderByDescending(t => t.Quantity) : query.OrderBy(t => t.Quantity),
-        "price" => sortOrder == "desc" ? query.OrderByDescending(t => t.Price) : query.OrderBy(t => t.Price),
-        "transactiontotal" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionTotal) : query.OrderBy(t => t.TransactionTotal),
-        _ => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionDate) : query.OrderBy(t => t.TransactionDate)
-    };
-
-    var transactions = await query.ToListAsync();
-    return Ok(transactions);
-}
-
-
-    [HttpPost]
-    public async Task<ActionResult<Transaction>> AddTransaction([FromBody] Transaction transaction)
+    public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] string? symbol,
+        [FromQuery] string? type,
+        [FromQuery] string? assetType,
+        [FromQuery] string? sortBy = "transactionDate",
+        [FromQuery] string? sortOrder = "desc")
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var query = _context.Transactions.Where(t => t.UserId == userId);
 
-        var newTransaction = new Transaction
+        // Apply filters
+        if (startDate.HasValue)
+            query = query.Where(t => t.TransactionDate >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(t => t.TransactionDate <= endDate.Value);
+
+        if (!string.IsNullOrEmpty(symbol))
+            query = query.Where(t => t.Symbol.ToUpper().Contains(symbol.ToUpper()));
+
+        if (!string.IsNullOrEmpty(type))
+            query = query.Where(t => t.TransactionType == type);
+
+        if (!string.IsNullOrEmpty(assetType))
+            query = query.Where(t => t.Type == assetType);
+
+        // Apply sorting
+        query = sortBy?.ToLower() switch
         {
-            UserId = userId,
-            StockSymbol = transaction.StockSymbol,
-            TransactionType = transaction.TransactionType,
-            Quantity = transaction.Quantity,
-            Price = transaction.Price,
-            TransactionTotal = transaction.TransactionTotal,
-            TransactionDate = DateTime.UtcNow
+            "symbol" => sortOrder == "desc" ? query.OrderByDescending(t => t.Symbol) : query.OrderBy(t => t.Symbol),
+            "type" => sortOrder == "desc" ? query.OrderByDescending(t => t.Type) : query.OrderBy(t => t.Type),
+            "transactiontype" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionType) : query.OrderBy(t => t.TransactionType),
+            "quantity" => sortOrder == "desc" ? query.OrderByDescending(t => t.Quantity) : query.OrderBy(t => t.Quantity),
+            "price" => sortOrder == "desc" ? query.OrderByDescending(t => t.Price) : query.OrderBy(t => t.Price),
+            "total" => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionTotal) : query.OrderBy(t => t.TransactionTotal),
+            _ => sortOrder == "desc" ? query.OrderByDescending(t => t.TransactionDate) : query.OrderBy(t => t.TransactionDate)
         };
 
-        _context.Transactions.Add(newTransaction);
-        await _context.SaveChangesAsync();
-
-        return Ok(newTransaction);
-    }
-
-    [HttpGet("symbol/{symbol}")]
-    public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactionsBySymbol(string symbol)
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var transactions = await _context.Transactions
-            .Where(t => t.UserId == userId && t.StockSymbol == symbol.ToUpper())
-            .OrderByDescending(t => t.TransactionDate)
-            .ToListAsync();
-
+        var transactions = await query.ToListAsync();
         return Ok(transactions);
     }
 
@@ -102,16 +72,29 @@ public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions(
             .Where(t => t.UserId == userId)
             .ToListAsync();
 
-        var summary = new
+        var stockSummary = new
         {
-            TotalBuys = transactions.Count(t => t.TransactionType == "BUY"),
-            TotalSells = transactions.Count(t => t.TransactionType == "SELL"),
-            TotalBuyAmount = transactions.Where(t => t.TransactionType == "BUY")
+            TotalBuys = transactions.Count(t => t.Type == "STOCK" && t.TransactionType == "BUY"),
+            TotalSells = transactions.Count(t => t.Type == "STOCK" && t.TransactionType == "SELL"),
+            TotalBuyAmount = transactions.Where(t => t.Type == "STOCK" && t.TransactionType == "BUY")
                                       .Sum(t => t.TransactionTotal),
-            TotalSellAmount = transactions.Where(t => t.TransactionType == "SELL")
+            TotalSellAmount = transactions.Where(t => t.Type == "STOCK" && t.TransactionType == "SELL")
                                        .Sum(t => t.TransactionTotal)
         };
 
-        return Ok(summary);
+        var cryptoSummary = new
+        {
+            TotalBuys = transactions.Count(t => t.Type == "CRYPTO" && t.TransactionType == "BUY"),
+            TotalSells = transactions.Count(t => t.Type == "CRYPTO" && t.TransactionType == "SELL"),
+            TotalBuyAmount = transactions.Where(t => t.Type == "CRYPTO" && t.TransactionType == "BUY")
+                                      .Sum(t => t.TransactionTotal),
+            TotalSellAmount = transactions.Where(t => t.Type == "CRYPTO" && t.TransactionType == "SELL")
+                                       .Sum(t => t.TransactionTotal)
+        };
+
+        return Ok(new { 
+            Stocks = stockSummary,
+            Crypto = cryptoSummary
+        });
     }
 }

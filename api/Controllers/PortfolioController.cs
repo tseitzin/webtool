@@ -80,12 +80,13 @@ public class PortfolioController : ControllerBase
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = request.Symbol.ToUpper(),
+                Symbol = request.Symbol.ToUpper(),
                 TransactionType = "BUY",
                 Quantity = (int)request.Quantity,
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
-                TransactionDate = DateTime.UtcNow
+                TransactionDate = DateTime.UtcNow,
+                Type = "BUY"
             };
 
             _context.Transactions.Add(transaction);
@@ -124,12 +125,13 @@ public class PortfolioController : ControllerBase
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = position.Symbol,
+                Symbol = position.Symbol,
                 TransactionType = "SELL",
                 Quantity = (int)request.Quantity,
                 Price = position.PurchasePrice, 
                 TransactionTotal = transactionAmount,
-                TransactionDate = DateTime.UtcNow
+                TransactionDate = DateTime.UtcNow,
+                Type = "SELL"
             };
             _context.Transactions.Add(transaction);
 
@@ -179,12 +181,13 @@ public class PortfolioController : ControllerBase
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = position.Symbol,
+                Symbol = position.Symbol,
                 TransactionType = request.QuantityToBuy > 0 ? "BUY" : "SELL",
                 Quantity = (int)request.QuantityToBuy,
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
-                TransactionDate = DateTime.UtcNow
+                TransactionDate = DateTime.UtcNow,
+                Type = request.QuantityToBuy > 0 ? "BUY" : "SELL"
             };
             _context.Transactions.Add(transaction);
     

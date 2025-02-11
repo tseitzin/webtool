@@ -240,10 +240,10 @@ public class AppDbContext : DbContext
             entity.ToTable("transactions");
 
             entity.HasIndex(t => t.UserId);
-            entity.HasIndex(t => t.StockSymbol);
+            entity.HasIndex(t => t.Symbol);
             entity.HasIndex(t => t.TransactionDate);
 
-            entity.Property(t => t.StockSymbol)
+            entity.Property(t => t.Symbol)
                   .HasMaxLength(10)
                   .IsRequired();
 

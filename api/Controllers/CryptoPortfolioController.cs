@@ -59,9 +59,10 @@ public class CryptoPortfolioController : ControllerBase
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = request.Symbol.ToUpper(),
+                Symbol = request.Symbol.ToUpper(),
+                Type = "CRYPTO",
                 TransactionType = "BUY",
-                Quantity = (int)request.Quantity,
+                Quantity = request.Quantity,
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow
@@ -97,9 +98,10 @@ public class CryptoPortfolioController : ControllerBase
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = position.Symbol,
+                Symbol = position.Symbol,
+                Type = "CRYPTO",
                 TransactionType = request.QuantityToBuy > 0 ? "BUY" : "SELL",
-                Quantity = (int)request.QuantityToBuy,
+                Quantity = request.QuantityToBuy,
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow
@@ -146,17 +148,18 @@ public class CryptoPortfolioController : ControllerBase
         try
         {
             position.Quantity -= request.Quantity;
-            decimal transactionAmount = request.Quantity * (position.PurchasePrice * -1);
+            decimal transactionAmount = request.Quantity * position.PurchasePrice;
 
             // Add transaction record
             var transaction = new Transaction
             {
                 UserId = userId,
-                StockSymbol = position.Symbol,
+                Symbol = position.Symbol,
+                Type = "CRYPTO",
                 TransactionType = "SELL",
-                Quantity = (int)request.Quantity,
+                Quantity = request.Quantity,
                 Price = position.PurchasePrice,
-                TransactionTotal = transactionAmount,
+                TransactionTotal = transactionAmount * -1, // Negative for sells
                 TransactionDate = DateTime.UtcNow
             };
             _context.Transactions.Add(transaction);
