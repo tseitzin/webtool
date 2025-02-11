@@ -7,7 +7,8 @@ import { formatCurrency, formatNumber } from '../utils/formatters'
 
 interface Transaction {
   id: number
-  stockSymbol: string
+  symbol: string
+  type: string
   transactionType: string
   quantity: number
   price: number
@@ -26,6 +27,7 @@ const startDate = ref('')
 const endDate = ref('')
 const symbolFilter = ref('')
 const typeFilter = ref('')
+const transactionTypeFilter = ref('')
 
 // Sorting states
 const sortBy = ref('transactionDate')
@@ -59,6 +61,9 @@ const fetchTransactions = async () => {
     if (typeFilter.value) {
       url += `type=${typeFilter.value}&`
     }
+    if (transactionTypeFilter.value) {
+      url += `transactionType=${transactionTypeFilter.value}&`
+    }
     url += `sortBy=${sortBy.value}&`
     url += `sortOrder=${sortOrder.value}`
 
@@ -81,6 +86,7 @@ const clearFilters = () => {
   endDate.value = ''
   symbolFilter.value = ''
   typeFilter.value = ''
+  transactionTypeFilter.value = ''
   fetchTransactions()
 }
 
@@ -108,7 +114,7 @@ const getSortIcon = (column: string) => {
       <!-- Filters -->
       <div class="bg-white p-4 rounded-lg shadow mb-6">
         <h2 class="text-lg font-semibold mb-4">Filters</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700">Start Date</label>
             <input
@@ -135,9 +141,20 @@ const getSortIcon = (column: string) => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Type</label>
+            <label class="block text-sm font-medium text-gray-700">Purchase Type</label>
             <select
               v-model="typeFilter"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value="">All</option>
+              <option value="STOCK">Stock</option>
+              <option value="CRYPTO">Crypto</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Transaction Type</label>
+            <select
+              v-model="transactionTypeFilter"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="">All</option>
@@ -185,10 +202,16 @@ const getSortIcon = (column: string) => {
                   Date {{ getSortIcon('transactionDate') }}
                 </th>
                 <th 
-                  @click="handleSort('stockSymbol')"
+                  @click="handleSort('type')"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
-                  Symbol {{ getSortIcon('stockSymbol') }}
+                  Purchase Type {{ getSortIcon('type') }}
+                </th>
+                <th 
+                  @click="handleSort('symbol')"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
+                  Symbol {{ getSortIcon('symbol') }}
                 </th>
                 <th 
                   @click="handleSort('transactionType')"
@@ -221,8 +244,20 @@ const getSortIcon = (column: string) => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                   {{ formatDate(transaction.transactionDate) }}
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    :class="[
+                      'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
+                      transaction.type === 'STOCK'
+                        ? 'bg-blue-100 text-green-800'
+                        : 'bg-orange-100 text-orange-700'
+                    ]"
+                  >
+                    {{ transaction.type }}
+                  </span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {{ transaction.stockSymbol }}
+                  {{ transaction.symbol }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span

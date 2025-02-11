@@ -25,6 +25,7 @@ public class TransactionController : ControllerBase
         [FromQuery] DateTime? endDate,
         [FromQuery] string? symbol,
         [FromQuery] string? type,
+        [FromQuery] string? transactionType,
         [FromQuery] string? assetType,
         [FromQuery] string? sortBy = "transactionDate",
         [FromQuery] string? sortOrder = "desc")
@@ -43,7 +44,10 @@ public class TransactionController : ControllerBase
             query = query.Where(t => t.Symbol.ToUpper().Contains(symbol.ToUpper()));
 
         if (!string.IsNullOrEmpty(type))
-            query = query.Where(t => t.TransactionType == type);
+            query = query.Where(t => t.Type == type);
+
+        if (!string.IsNullOrEmpty(transactionType))
+            query = query.Where(t => t.TransactionType == transactionType);
 
         if (!string.IsNullOrEmpty(assetType))
             query = query.Where(t => t.Type == assetType);

@@ -86,7 +86,7 @@ public class PortfolioController : ControllerBase
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow,
-                Type = "BUY"
+                Type = "STOCK"
             };
 
             _context.Transactions.Add(transaction);
@@ -131,7 +131,7 @@ public class PortfolioController : ControllerBase
                 Price = position.PurchasePrice, 
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow,
-                Type = "SELL"
+                Type = "STOCK"
             };
             _context.Transactions.Add(transaction);
 
@@ -187,7 +187,7 @@ public class PortfolioController : ControllerBase
                 Price = request.PurchasePrice,
                 TransactionTotal = transactionAmount,
                 TransactionDate = DateTime.UtcNow,
-                Type = request.QuantityToBuy > 0 ? "BUY" : "SELL"
+                Type = "STOCK"
             };
             _context.Transactions.Add(transaction);
     
