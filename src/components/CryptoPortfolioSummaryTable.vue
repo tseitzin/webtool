@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from 'vue'
 import { formatNumber, formatCurrency, formatPercent } from '../utils/formatters'
-import type { UserOwnedStock } from '../types/portfolio'
-import { polygonService } from '../services/polygonService'
+import { coinbaseService } from '../services/coinbaseService'
 import router from '../router';
 
+interface CryptoPosition {
+  id: number
+  symbol: string
+  quantity: number
+  averagePurchasePrice: number
+  currentValue: number
+  gainLoss?: number
+  gainLossPercent?: number
+}
+
 const props = defineProps<{
-  positions: UserOwnedStock[]
+  positions: CryptoPosition[]
 }>()
 
 const emit = defineEmits<{
@@ -23,8 +32,8 @@ const updatePortfolioValues = async () => {
 
   for (const position of props.positions) {
     try {
-      const currentData = await polygonService.getStockSnapshot(position.symbol)
-      position.currentValue = currentData.price * position.quantity
+      const currentData = await coinbaseService.getCryptoData(position.symbol)
+      position.currentValue = Number(currentData.price) * position.quantity
       position.gainLoss = position.currentValue - (position.averagePurchasePrice * position.quantity)
       position.gainLossPercent = (position.gainLoss / (position.averagePurchasePrice * position.quantity)) * 100
       total += position.currentValue
@@ -49,7 +58,7 @@ watchEffect((onCleanup) => {
 })
 
 const navigateToResearch = (symbol: string) => {
-  router.push(`/research/${symbol}`)
+  router.push(`/crypto/${symbol}`)
 }
 
 onMounted(updatePortfolioValues)
@@ -80,17 +89,17 @@ onMounted(updatePortfolioValues)
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(position.quantity) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue / position.quantity) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm" :class="position.gainLoss >= 0 ? 'text-green-600' : 'text-red-600'">
-              {{ formatCurrency(position.gainLoss) }}
+            <td class="px-6 py-4 whitespace-nowrap text-sm" :class="(position.gainLoss ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ formatCurrency(position.gainLoss ?? 0) }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm" :class="position.gainLossPercent >= 0 ? 'text-green-600' : 'text-red-600'">
-              {{ formatPercent(position.gainLossPercent) }}
+            <td class="px-6 py-4 whitespace-nowrap text-sm" :class="(position.gainLossPercent ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ formatPercent(position.gainLossPercent ?? 0) }}
             </td>
           </tr>
         </tbody>
         <tfoot class="bg-gray-50 font-semibold">
           <tr>
-            <td colspan="3" class="px-6 py-4 text-sm text-gray-900">Portfolio Total:</td>
+            <td colspan="3" class="px-6 py-4 text-sm text-gray-900">Crypto Total:</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ formatCurrency(portfolioTotal) }}</td>
             <td class="px-6 py-4 text-sm" :class="totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ formatCurrency(totalGainLoss) }}

@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public required DbSet<MarketMover> MarketMovers { get; set; }
     public required DbSet<Portfolio> Portfolios { get; set; }
     public required DbSet<Transaction> Transactions { get; set; }
+    public required DbSet<CryptoPortfolio> CryptoPortfolios { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -54,6 +55,28 @@ public class AppDbContext : DbContext
             entity.Property(u => u.LastLoginDate).HasColumnName("last_login_date");
             entity.Property(u => u.PreviousLoginDate).HasColumnName("previous_login_date");
             entity.Property(u => u.FailedLogins).HasColumnName("failed_logins");
+        });
+
+        modelBuilder.Entity<CryptoPortfolio>(entity =>
+        {
+            entity.ToTable("crypto_portfolios");
+
+            entity.HasIndex(p => new { p.UserId, p.Symbol });
+
+            entity.Property(p => p.Symbol)
+                  .HasMaxLength(10)
+                  .IsRequired();
+
+            entity.Property(p => p.Notes)
+                  .HasMaxLength(500);
+
+            entity.Property(p => p.PurchaseDate)
+                  .HasColumnType("timestamp with time zone");
+
+            entity.HasOne(p => p.User)
+                  .WithMany()
+                  .HasForeignKey(p => p.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Portfolio>(entity =>
