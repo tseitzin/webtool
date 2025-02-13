@@ -65,6 +65,8 @@ const toggleSavedCrypto = async (symbol: string) => {
   try {
     await cryptoService.removeSavedCrypto(symbol)
     savedCryptos.value = savedCryptos.value.filter(c => c.symbol !== symbol)
+    // Sort after removing
+    savedCryptos.value.sort((a, b) => a.symbol.localeCompare(b.symbol))
   } catch (e) {
     console.error('Failed to remove crypto:', e)
   }
@@ -73,7 +75,9 @@ const toggleSavedCrypto = async (symbol: string) => {
 const fetchSavedCryptos = async () => {
   loading.value = true
   try {
-    savedCryptos.value = await cryptoService.getSavedCryptos()
+    const cryptos = await cryptoService.getSavedCryptos()
+    // Sort cryptos alphabetically by symbol
+    savedCryptos.value = cryptos.sort((a, b) => a.symbol.localeCompare(b.symbol))
   } catch (e) {
     console.error('Failed to fetch saved cryptos:', e)
     error.value = 'Failed to load saved cryptocurrencies'
@@ -85,7 +89,9 @@ const fetchSavedCryptos = async () => {
 const fetchOwnedCryptos = async () => {
   try {
     const response = await api.get('/cryptoportfolio')
-    ownedCryptos.value = response.data
+    // Sort owned cryptos alphabetically
+    ownedCryptos.value = response.data.sort((a: CryptoPortfolio, b: CryptoPortfolio) => 
+      a.symbol.localeCompare(b.symbol))
   } catch (e) {
     console.error('Failed to fetch owned cryptos:', e)
   }
@@ -109,7 +115,7 @@ const openPortfolioModal = (crypto: CryptoData) => {
 const closePortfolioModal = () => {
   showPortfolioModal.value = false
   selectedCryptoForPortfolio.value = null
-  location.reload()
+  refreshData()
 }
 
 const openRemovePortfolioModal = (crypto: CryptoData) => {
@@ -120,9 +126,14 @@ const openRemovePortfolioModal = (crypto: CryptoData) => {
 const closeRemovePortfolioModal = () => {
   showRemovePortfolioModal.value = false
   selectedCryptoForPortfolio.value = null
+  refreshData()
 }
 
 const handlePortfolioSuccess = async () => {
+  await refreshData()
+}
+
+const refreshData = async () => {
   await Promise.all([
     fetchSavedCryptos(),
     fetchOwnedCryptos()

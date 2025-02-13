@@ -30,7 +30,9 @@ onMounted(async () => {
 
 const fetchSavedCryptos = async () => {
   try {
-    savedCryptos.value = await cryptoService.getSavedCryptos()
+    const cryptos = await cryptoService.getSavedCryptos()
+    // Sort cryptos alphabetically by symbol
+    savedCryptos.value = cryptos.sort((a, b) => a.symbol.localeCompare(b.symbol))
   } catch (e) {
     console.error('Failed to fetch saved cryptos:', e)
   }
@@ -69,6 +71,8 @@ const toggleSavedCrypto = async (symbol: string) => {
       await cryptoService.saveCrypto(selectedCrypto.value)
       savedCryptos.value = [...savedCryptos.value, selectedCrypto.value]
     }
+    // Sort after modifying the list
+    savedCryptos.value.sort((a, b) => a.symbol.localeCompare(b.symbol))
   } catch (e) {
     console.error('Failed to toggle saved crypto:', e)
     error.value = 'Failed to update watchlist'
