@@ -21,10 +21,11 @@ onMounted(async () => {
     }
     
     try {
-        const [stocks, cryptos, portfolio] = await Promise.all([
-        stockService.getSavedStocks(),
-        cryptoService.getSavedCryptos(),
-        api.get('/portfolio')
+        const [stocks, cryptos, portfolio, cryptoPortfolio] = await Promise.all([
+            stockService.getSavedStocks(),
+            cryptoService.getSavedCryptos(),
+            api.get('/portfolio'),
+            api.get('/cryptoportfolio')  // Add this new API call
         ])
         savedStocksCount.value = stocks.length
         savedCryptoCount.value = cryptos.length
@@ -33,8 +34,9 @@ onMounted(async () => {
         const uniqueStocks = new Set(portfolio.data.map((item: any) => item.symbol))
         ownedStocksCount.value = uniqueStocks.size
         
-        // For future crypto portfolio implementation
-        ownedCryptoCount.value = 0
+        // Count unique cryptos in portfolio
+        const uniqueCryptos = new Set(cryptoPortfolio.data.map((item: any) => item.symbol))
+        ownedCryptoCount.value = uniqueCryptos.size
     } catch (e) {
         console.error('Error fetching counts:', e)
     }
