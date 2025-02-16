@@ -19,6 +19,10 @@ export class CryptoService {
     await api.delete(`/savedcryptos/${symbol}`)
   }
 
+  async addSavedCrypto(symbol: string): Promise<void> {
+    await api.post(`/savedcryptos/${symbol}`)
+  }
+
   async getSavedCryptos(): Promise<CryptoData[]> {
     const response = await api.get('/savedcryptos')
     return response.data.map((crypto: any) => ({

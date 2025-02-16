@@ -30,6 +30,8 @@ const showPortfolioModal = ref(false)
 const showRemovePortfolioModal = ref(false)
 const selectedCryptoForPortfolio = ref<CryptoData | null>(null)
 const ownedCryptos = ref<CryptoPortfolio[]>([])
+const showRemoveModal = ref(false)
+const cryptoToRemove = ref<string | null>(null)
 
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
   useCollapsibleSection('crypto_dashboard_intro')
@@ -53,7 +55,7 @@ const formatChange = (change: number, changePercent: number): string => {
   return `${formatCurrency(change)} (${formatPercent(changePercent)})`
 }
 
-const toggleSavedCrypto = async (symbol: string) => {
+const handleRemoveCrypto = (symbol: string) => {
   // Check if crypto is in portfolio
   const isInPortfolio = ownedCryptos.value.some(crypto => crypto.symbol === symbol)
   
@@ -62,14 +64,27 @@ const toggleSavedCrypto = async (symbol: string) => {
     return
   }
 
-  try {
-    await cryptoService.removeSavedCrypto(symbol)
-    savedCryptos.value = savedCryptos.value.filter(c => c.symbol !== symbol)
-    // Sort after removing
-    savedCryptos.value.sort((a, b) => a.symbol.localeCompare(b.symbol))
-  } catch (e) {
-    console.error('Failed to remove crypto:', e)
+  cryptoToRemove.value = symbol
+  showRemoveModal.value = true
+}
+
+const handleConfirmRemoval = async () => {
+  if (cryptoToRemove.value) {
+    try {
+      await cryptoService.removeSavedCrypto(cryptoToRemove.value)
+      savedCryptos.value = savedCryptos.value
+        .filter(c => c.symbol !== cryptoToRemove.value)
+        .sort((a, b) => a.symbol.localeCompare(b.symbol))
+    } catch (e) {
+      console.error('Failed to remove crypto:', e)
+    }
   }
+  cancelRemoval()
+}
+
+const cancelRemoval = () => {
+  showRemoveModal.value = false
+  cryptoToRemove.value = null
 }
 
 const fetchSavedCryptos = async () => {
@@ -234,7 +249,7 @@ const refreshData = async () => {
                     Sell Crypto
                   </button>
                   <button
-                    @click="toggleSavedCrypto(crypto.symbol)"
+                    @click="handleRemoveCrypto(crypto.symbol)"
                     class="px-4 py-2 bg-gray-600 text-xs text-white rounded-lg hover:bg-gray-800 transition-colors"
                   >
                     Remove
@@ -293,15 +308,19 @@ const refreshData = async () => {
                   </div>
                 </div>
               </div>
+
               <div 
                 v-else 
                 class="mt-4 bg-gray-50 p-3 rounded-lg"
               >
                 <p class="font-semibold text-gray-600">Not currently in portfolio</p>
               </div>
+
+
             </div>
           </div>
         </div>
+        
       </div>
 
       <!-- Modals -->
@@ -321,6 +340,14 @@ const refreshData = async () => {
         :price="Number(selectedCryptoForPortfolio.price)"
         @close="closeRemovePortfolioModal"
         @success="handlePortfolioSuccess"
+      />
+
+      <ConfirmationModal
+        :is-open="showRemoveModal"
+        title="Remove Crypto"
+        message="Are you sure you want to remove this crypto from your watchlist?"
+        @confirm="handleConfirmRemoval"
+        @cancel="cancelRemoval"
       />
     </div>
   </div>
