@@ -2,6 +2,9 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import api from '../api/axios'
 import { formatCurrency, formatNumber } from '../utils/formatters'
+import { useLogger } from '../composables/useLogger'
+
+const logger = useLogger()
 
 const props = defineProps<{
   isOpen: boolean
@@ -47,8 +50,17 @@ const fetchCurrentPosition = async () => {
       currentlyOwned.value = 0
       existingPositionId.value = null
     }
+
+    await logger.info('Fetched current crypto position', {
+      symbol: props.symbol,
+      currentlyOwned: currentlyOwned.value,
+      existingPositionId: existingPositionId.value
+    })
   } catch (e) {
     console.error('Failed to fetch portfolio:', e)
+    await logger.error('Failed to fetch crypto portfolio', e as Error, {
+      symbol: props.symbol
+    })
   }
 }
 
@@ -70,6 +82,13 @@ const confirmBuy = async () => {
 
   try {
     if (existingPositionId.value) {
+      await logger.info('Adding to existing crypto position', {
+        symbol: props.symbol,
+        quantity: quantity.value,
+        price: purchasePrice.value,
+        total: totalPurchaseAmount.value
+      })
+
       await api.put(`/cryptoportfolio/${existingPositionId.value}`, {
         QuantityToBuy: quantity.value,
         QuantityAlreadyOwned: currentlyOwned.value + quantity.value,
@@ -78,6 +97,13 @@ const confirmBuy = async () => {
         notes: notes.value
       })
     } else {
+      await logger.info('Adding new crypto position', {
+        symbol: props.symbol,
+        quantity: quantity.value,
+        price: purchasePrice.value,
+        total: totalPurchaseAmount.value
+      })
+
       await api.post('/cryptoportfolio', {
         symbol: props.symbol,
         quantity: quantity.value,
@@ -93,6 +119,12 @@ const confirmBuy = async () => {
     await fetchCurrentPosition()
   } catch (e: any) {
     error.value = e.response?.data?.message || 'Failed to add to portfolio'
+    await logger.error('Failed to add crypto to portfolio', e as Error, {
+      symbol: props.symbol,
+      quantity: quantity.value,
+      price: purchasePrice.value,
+      error: error.value
+    })
   } finally {
     loading.value = false
     showBuyConfirmation.value = false

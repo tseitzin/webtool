@@ -2,6 +2,9 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import api from '../api/axios'
 import { formatCurrency, formatNumber } from '../utils/formatters'
+import { useLogger } from '../composables/useLogger'
+
+const logger = useLogger()
 
 const props = defineProps<{
   isOpen: boolean
@@ -47,8 +50,18 @@ const fetchCurrentPosition = async () => {
       currentlyOwned.value = 0
       existingPositionId.value = null
     }
+
+    await logger.info('Fetched current crypto position', {
+      symbol: props.symbol,
+      currentlyOwned: currentlyOwned.value,
+      existingPositionId: existingPositionId.value
+    })
+
   } catch (e) {
     console.error('Failed to fetch portfolio:', e)
+    await logger.error('Failed to fetch crypto portfolio', e as Error, {
+      symbol: props.symbol
+    })
   }
 }
 
@@ -59,6 +72,10 @@ const handleSell = async () => {
 const confirmSell = async () => {
   if (sellQuantity.value <= 0 || sellQuantity.value > currentlyOwned.value) {
     error.value = 'Invalid sell quantity'
+    await logger.warn('Invalid sell quantity', new Error(`Sell quantity ${sellQuantity.value} is over what you own`), {
+      sellQuantity: sellQuantity.value,
+      currentlyOwned: currentlyOwned.value
+    })
     return
   }
 
@@ -66,6 +83,11 @@ const confirmSell = async () => {
   error.value = ''
 
   try {
+    await logger.info('Reducing existing crypto position', {
+        symbol: props.symbol,
+        quantity: sellQuantity.value,
+        price: sellPrice.value
+      })
     await api.post(`/cryptoportfolio/${existingPositionId.value}/sell`, {
       quantity: sellQuantity.value,
       price: sellPrice.value
@@ -128,7 +150,7 @@ const cancelSell = () => {
               step="0.000001"
               :max="currentlyOwned"
               :disabled="currentlyOwned === 0"
-              @input="(e) => validateSellQuantity(Number((e.target as HTMLInputElement)?.value))"
+              @input="(e: Event) => validateSellQuantity(Number((e.target as HTMLInputElement)?.value))"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>

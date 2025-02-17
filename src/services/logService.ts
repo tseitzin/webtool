@@ -33,7 +33,7 @@ class LogService {
     await this.log({ level: 'error', message, error, context })
   }
 
-  async warn(message: string, context?: Record<string, any>): Promise<void> {
+  async warn(message: string, context?: Record<string, any>, _p0?: { sellQuantity: number; currentlyOwned: number }): Promise<void> {
     await this.log({ level: 'warn', message, context })
   }
 }
