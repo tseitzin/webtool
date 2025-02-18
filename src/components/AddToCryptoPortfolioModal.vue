@@ -67,6 +67,10 @@ const fetchCurrentPosition = async () => {
 const handleBuy = async () => {
   if (quantity.value <= 0) {
     error.value = 'Quantity must be greater than 0'
+    await logger.error('Quantity must be greater than 0', new Error(`User entered a number less than 0`), {
+      sellQuantity: quantity.value,
+      currentlyOwned: currentlyOwned.value
+    })
     return
   }
   if (purchasePrice.value <= 0) {

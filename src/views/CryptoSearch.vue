@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { coinbaseService } from '../services/coinbaseService'
@@ -38,6 +38,7 @@ const loading = ref(false)
 const searchSymbol = ref('')
 const showRemoveModal = ref(false)
 const cryptoToRemove = ref<string | null>(null)
+const cryptoPrices = ref<Map<string, number>>(new Map())
 
 const { isExpanded: isIntroExpanded, toggleSection: toggleIntro } = 
   useCollapsibleSection('crypto_intro')
@@ -46,10 +47,15 @@ onMounted(async () => {
   if (!auth.isAuthenticated) {
     router.push('/access-denied')
   }
-  await Promise.all([
-    fetchSavedCryptos(),
-    fetchOwnedCryptos()
-  ])
+  await refreshData()
+
+  // Update prices every minute
+  const interval = setInterval(updateCryptoPrices, 10000)
+  
+  // Clean up interval on component unmount
+  onUnmounted(() => {
+    clearInterval(interval)
+  })
 })
 
 const fetchSavedCryptos = async () => {
@@ -167,11 +173,22 @@ const closePortfolioModal = () => {
   refreshData()
 }
 
+const updateCryptoPrices = async () => {
+  for (const crypto of savedCryptos.value) {
+    try {
+      const currentData = await coinbaseService.getCryptoData(crypto.symbol)
+      cryptoPrices.value.set(crypto.symbol, Number(currentData.price))
+    } catch (error) {
+      console.error(`Error updating price for ${crypto.symbol}:`, error)
+    }
+  }
+}
 
 const refreshData = async () => {
   await Promise.all([
     fetchSavedCryptos(),
-    fetchOwnedCryptos()
+    fetchOwnedCryptos(),
+    updateCryptoPrices()
   ])
 }
 
@@ -352,7 +369,12 @@ const cancelRemoval = () => {
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-gray-100 p-2 rounded-lg">
                   <p class="text-sm text-gray-500">Current Price</p>
-                  <p class="text-lg font-semibold">{{ formatCurrency(Number(crypto.price)) }}</p>
+                  <p class="text-lg font-semibold" :class="{
+                    'text-green-600': cryptoPrices.get(crypto.symbol) > Number(crypto.price),
+                    'text-red-600': cryptoPrices.get(crypto.symbol) < Number(crypto.price)
+                  }">
+                    {{ formatCurrency(cryptoPrices.get(crypto.symbol) ?? Number(crypto.price)) }}
+                  </p>
                 </div>
                 <div class="bg-gray-100 p-2 rounded-lg">
                   <p class="text-sm text-gray-500">24h Change</p>

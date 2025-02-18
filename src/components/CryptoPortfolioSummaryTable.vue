@@ -10,6 +10,7 @@ interface CryptoPosition {
   quantity: number
   averagePurchasePrice: number
   currentValue: number
+  currentPrice?: number  // Add this new property
   gainLoss?: number
   gainLossPercent?: number
 }
@@ -33,7 +34,8 @@ const updatePortfolioValues = async () => {
   for (const position of props.positions) {
     try {
       const currentData = await coinbaseService.getCryptoData(position.symbol)
-      position.currentValue = Number(currentData.price) * position.quantity
+      position.currentPrice = Number(currentData.price)  // Store the current price
+      position.currentValue = position.currentPrice * position.quantity
       position.gainLoss = position.currentValue - (position.averagePurchasePrice * position.quantity)
       position.gainLossPercent = (position.gainLoss / (position.averagePurchasePrice * position.quantity)) * 100
       total += position.currentValue
@@ -87,7 +89,7 @@ onMounted(updatePortfolioValues)
               {{ position.symbol }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatNumber(position.quantity) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue / position.quantity) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentPrice ?? 0) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(position.currentValue) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm" :class="(position.gainLoss ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ formatCurrency(position.gainLoss ?? 0) }}

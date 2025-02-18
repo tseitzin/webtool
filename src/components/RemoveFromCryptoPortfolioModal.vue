@@ -3,6 +3,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import api from '../api/axios'
 import { formatCurrency, formatNumber } from '../utils/formatters'
 import { useLogger } from '../composables/useLogger'
+import { showErrorToast } from '../utils/toast'
 
 const logger = useLogger()
 
@@ -72,7 +73,7 @@ const handleSell = async () => {
 const confirmSell = async () => {
   if (sellQuantity.value <= 0 || sellQuantity.value > currentlyOwned.value) {
     error.value = 'Invalid sell quantity'
-    await logger.warn('Invalid sell quantity', new Error(`Sell quantity ${sellQuantity.value} is over what you own`), {
+    await logger.error('Invalid sell quantity', new Error(`Sell quantity: ${sellQuantity.value} is over what is currently owned: ${currentlyOwned.value}`), {
       sellQuantity: sellQuantity.value,
       currentlyOwned: currentlyOwned.value
     })
@@ -83,10 +84,11 @@ const confirmSell = async () => {
   error.value = ''
 
   try {
-    await logger.info('Reducing existing crypto position', {
+    await logger.info('Initiating crypto reduction', {
         symbol: props.symbol,
         quantity: sellQuantity.value,
-        price: sellPrice.value
+        price: sellPrice.value,
+        total: totalSaleAmount.value
       })
     await api.post(`/cryptoportfolio/${existingPositionId.value}/sell`, {
       quantity: sellQuantity.value,
@@ -98,28 +100,53 @@ const confirmSell = async () => {
     notes.value = ''
     error.value = ''
     await fetchCurrentPosition()
+
+    await logger.info('Successfully reduced crypto position', {
+      symbol: props.symbol,
+      quantity: sellQuantity.value,
+      price: sellPrice.value,
+      total: totalSaleAmount.value
+    })
   } catch (e: any) {
-    error.value = e.response?.data?.message || 'Failed to sell position'
+    error.value = e.response?.data?.message || 'Failed to reduce position'
+    console.error('Failed to complete sale:', e)
+    await logger.error('Failed to complete sale', e as Error, {
+      symbol: props.symbol,
+      quantity: sellQuantity.value,
+      price: sellPrice.value,
+      error: error.value
+    })
   } finally {
     loading.value = false
     showSellConfirmation.value = false
   }
 }
 
-const validateSellQuantity = (value: number) => {
+const validateSellQuantity = async (value: number) => {
+  error.value = ''
+
   if (value > currentlyOwned.value) {
-    error.value = `Cannot sell more than ${currentlyOwned.value} units`
+    const message = `You can only sell up to ${formatNumber(currentlyOwned.value)} ${props.symbol}`
+    showErrorToast(message, 5000)
+    error.value = `Cannot sell more than ${currentlyOwned.value} ${props.symbol}, set Quantity to ${currentlyOwned.value}`
+    
+    await logger.error('Invalid sell quantity', new Error(`Sell quantity: ${sellQuantity.value} is over what is currently owned: ${currentlyOwned.value}`), {
+      sellQuantity: sellQuantity.value,
+      currentlyOwned: currentlyOwned.value
+    })
+
     sellQuantity.value = currentlyOwned.value
+
   } else {
     error.value = ''
   }
 }
 
-watch(sellQuantity, (newValue) => {
-  if (newValue) {
-    validateSellQuantity(newValue)
-  }
-})
+// watch(sellQuantity, (newValue) => {
+//   if (newValue !== undefined) {
+//     validateSellQuantity(newValue)
+//   }
+// })
 
 const cancelSell = () => {
   showSellConfirmation.value = false
